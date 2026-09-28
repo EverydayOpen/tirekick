@@ -1,0 +1,11 @@
+{
+  "SPPowerDataType" : [
+    {
+      "sppower_battery_health_info" : {
+        "sppower_battery_cycle_count" : 88,
+        "sppower_battery_health" : "Good",
+        "sppower_battery_health_maximum_capacity" : "83%"
+      }
+    }
+  ]
+}

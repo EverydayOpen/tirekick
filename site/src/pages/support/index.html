@@ -1,0 +1,37 @@
+<!--meta {"title": "Support · Tirekick", "description": "Get help with Tirekick: report a problem on GitHub, send the raw output with the serial masked, and what Tirekick can't tell you."}-->
+<article class="wrap narrow prose">
+  <h1>Support</h1>
+  <p class="lede">Report a problem or ask a question on <a href="{{issuesURL}}">GitHub Issues</a>. Please include the Mac's model, its macOS version and, if you can, the raw output (see below).</p>
+
+  <h2 id="raw">Sending the raw output</h2>
+  <p>When a check says “Couldn't check” or looks wrong, the fastest fix starts with exactly what your Mac printed.</p>
+  <ol>
+    <li>Open Tirekick and run the checks.</li>
+    <li>Choose Help › Copy Raw Data. It copies every command Tirekick ran and its output, with the serial number and hardware identifiers masked.</li>
+    <li>Paste it into your issue.</li>
+  </ol>
+  <p>Issues on GitHub are public, so read it before you post it and remove anything you'd rather not share. Each report from a real Mac becomes a test that keeps that Mac's output working in future versions.</p>
+
+  <h2 id="company-check">The company check says “Couldn't check”</h2>
+  <p>The command you run in Terminal asks Apple's servers, so the Mac needs the internet, and your password must be an administrator's. Connect to Wi-Fi, run <code>sudo /usr/bin/profiles show -type enrollment</code> again and paste the whole output. An error that mentions the cloud configuration server usually means no internet connection. Tirekick never treats an error as “not assigned”.</p>
+
+  <h2 id="limits">What Tirekick can't tell you</h2>
+  <ul>
+    <li>Whether the Mac was reported lost or stolen. No public lookup exists.</li>
+    <li>Whether an Intel Mac has a firmware password.</li>
+    <li>Parts and repair history, and liquid damage.</li>
+    <li>Whether the seller owns the Mac. Ask for the receipt.</li>
+  </ul>
+  <p>It also can't run on a Mac stuck at the setup screen, or on Macs too old for macOS {{minMacOS}}. The <a href="/guides/used-mac-meetup-checklist/">meetup checklist</a> covers both.</p>
+
+  <h2 id="bypass">Can it remove MDM or Activation Lock?</h2>
+  <p>No, and it never will. Only the owner can turn off Activation Lock, and only the organization can release a Mac it owns. See <a href="/guides/check-used-mac-for-mdm/">how to check a used Mac for MDM</a>.</p>
+
+  <h2>More help</h2>
+  <ul>
+    <li><a href="/guides/check-activation-lock/">How to check Activation Lock on a used Mac</a></li>
+    <li><a href="/guides/selling-intel-mac-after-macos-27/">Selling an Intel Mac after macOS 27</a></li>
+    <li><a href="/changelog/">What's new in each version</a></li>
+    <li><a href="/privacy/">Privacy policy</a> · <a href="/terms/">Terms</a></li>
+  </ul>
+</article>

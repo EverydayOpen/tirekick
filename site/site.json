@@ -1,0 +1,13 @@
+{
+  "name": "Tirekick",
+  "baseURL": "https://everydayopen.github.io/tirekick",
+  "tagline": "Kick the tires on a used Mac before you pay.",
+  "releasesRepo": "EverydayOpen/tirekick",
+  "dmgName": "Tirekick.dmg",
+  "minMacOS": "13",
+  "owner": "EverydayOpen",
+  "governingLaw": "the laws of India",
+  "legalUpdated": "2026-09-28",
+  "legalReviewed": false,
+  "placeholders": []
+}

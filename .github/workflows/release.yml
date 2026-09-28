@@ -1,0 +1,240 @@
+# Tag vX.Y.Z -> signed, notarized, stapled DMG on this repo's GitHub Releases. One-time setup: docs/RELEASING.md.
+#
+#   build        preflight (changelog row, placeholders, one base URL, releasesRepo, DMG name, notarytool
+#                credentials) -> archive -> bundle checks -> arm64 launch smoke test -> notarize app -> DMG -> notarize DMG
+#   smoke-intel  launches the same signed app on an Intel runner
+#   publish      only after both smoke tests: GitHub Release (notes from CHANGELOG.md) with the DMG twice
+#                (Tirekick-X.Y.Z.dmg, and the fixed Tirekick.dmg that the site's /download/ links to)
+#
+# No Sparkle and no appcast (PICK §3): the app never goes online, and the site's latest-DMG link is the update path.
+#
+# Secrets (in the protected "release" environment; build and publish both use it, so a required reviewer approves
+# twice: once to build, once to publish after the smoke tests pass):
+#   DEVELOPER_ID_P12_BASE64    base64 of the Developer ID Application identity (.p12, legacy PBE)
+#   DEVELOPER_ID_P12_PASSWORD  password of that .p12
+#   KEYCHAIN_PASSWORD          any random string (temporary CI keychain)
+#   DEVELOPMENT_TEAM           Apple Team ID (10 characters)
+#   ASC_KEY_P8_BASE64          base64 of the App Store Connect Team API key (AuthKey_XXXXXXXXXX.p8)
+#   ASC_KEY_ID                 that key's Key ID
+#   ASC_ISSUER_ID              that key's Issuer ID
+name: release
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]   # plain X.Y.Z only; vX.Y.Z-beta.N tags go to beta.yml
+
+permissions:
+  contents: read
+
+env:
+  APP: Tirekick
+
+defaults:
+  run:
+    shell: bash   # bash -eo pipefail
+
+jobs:
+  build:
+    runs-on: macos-26
+    environment: release
+    timeout-minutes: 120   # ~15 min build + two notarizations of up to 45 min each
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Everything that can fail without Xcode fails here, before any build time.
+      - name: Preflight (changelog row, placeholders, one base URL, releases repo, DMG name)
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          python3 tools/changelog.py notes "$VERSION" --format md > /dev/null \
+            || { echo "::error::CHANGELOG.md needs a '## $VERSION — YYYY-MM-DD' section with notes"; exit 1; }
+          # The website URL is baked into every copy (Help menu); doctor.sh --ci treats placeholders as todos.
+          PH="$(jq -r .baseURL site/site.json) $(grep -m1 'let website' App/Links.swift)"
+          [[ "$PH" != *REPLACE_* && "$PH" != *OWNER* ]] \
+            || { echo "::error::Replace the placeholders in site/site.json baseURL and Links.website in App/Links.swift (docs/GO_LIVE.md step 2)"; exit 1; }
+          bash tools/doctor.sh --ci || { echo "::error::One base URL everywhere: fix the ERROR lines above (docs/GO_LIVE.md step 2)"; exit 1; }
+          [ "$(jq -r .releasesRepo site/site.json)" = "$GITHUB_REPOSITORY" ] || { echo "::error::site/site.json releasesRepo != $GITHUB_REPOSITORY"; exit 1; }
+          [[ "$APP" =~ ^[A-Za-z0-9._-]+$ ]] && [ "$(jq -r .dmgName site/site.json)" = "$APP.dmg" ] || { echo "::error::APP must be letters, digits, . _ - only (GitHub renames other asset names) and site/site.json dmgName must be $APP.dmg"; exit 1; }
+
+      - name: Select Xcode 26
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app
+          xcodebuild -version
+
+      # A bad App Store Connect key would otherwise fail only at notarization, after the whole build.
+      - name: Preflight (notarytool accepts the App Store Connect key)
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          echo -n "$ASC_KEY_P8_BASE64" | base64 --decode -o "$RUNNER_TEMP/AuthKey.p8"
+          xcrun notarytool history --key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" > /dev/null \
+            || { echo "::error::notarytool rejected ASC_KEY_P8_BASE64 / ASC_KEY_ID / ASC_ISSUER_ID (docs/RELEASING.md step 3)"; exit 1; }
+
+      - name: Import Developer ID certificate
+        env:
+          P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          KC="$RUNNER_TEMP/signing.keychain-db"
+          echo -n "$P12_BASE64" | base64 --decode -o "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KC"
+          security list-keychain -d user -s "$KC"
+          # VERIFY: the runner image preinstalls Apple's Developer ID G2 intermediate in the System
+          # keychain; if codesign can't build the chain, also import
+          # https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer into "$KC".
+
+      - name: Archive and export (Developer ID, hardened runtime, universal)
+        env:
+          TEAM_ID: ${{ secrets.DEVELOPMENT_TEAM }}
+        run: |
+          brew install xcodegen
+          xcodegen generate
+          plutil -replace teamID -string "$TEAM_ID" ExportOptions.plist
+          xcodebuild -project "$APP.xcodeproj" -scheme "$APP" -configuration Release \
+            -destination 'generic/platform=macOS' -archivePath "build/$APP.xcarchive" \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Developer ID Application" DEVELOPMENT_TEAM="$TEAM_ID" \
+            ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS=--timestamp \
+            MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
+            archive
+          xcodebuild -exportArchive -archivePath "build/$APP.xcarchive" \
+            -exportOptionsPlist ExportOptions.plist -exportPath build/export
+          codesign -vvv --deep --strict "build/export/$APP.app"
+
+      # Hardened runtime silently blocks the camera and microphone tests without these entitlements.
+      - name: Check the bundle (universal, camera and microphone entitlements)
+        run: |
+          A="build/export/$APP.app"
+          ARCHS=$(lipo -archs "$A/Contents/MacOS/$APP")
+          echo "$APP: $ARCHS"
+          [[ " $ARCHS " == *" arm64 "* && " $ARCHS " == *" x86_64 "* ]] || { echo "::error::$APP is not universal ($ARCHS)"; exit 1; }
+          ENT=$(codesign -d --entitlements - "$A" 2>&1)
+          for E in com.apple.security.device.camera com.apple.security.device.audio-input; do
+            [[ "$ENT" == *"$E"* ]] || { echo "$ENT"; echo "::error::$E is missing from the signed app's entitlements"; exit 1; }
+          done
+
+      # Every build launches before it ships. Keep in sync with smoke-intel. The app runs nothing until the user picks a mode.
+      - name: Launch smoke test (arm64)
+        run: |
+          "build/export/$APP.app/Contents/MacOS/$APP" & PID=$!
+          sleep 10
+          if kill -0 "$PID" 2>/dev/null; then kill "$PID"; echo "$APP launched and stayed up for 10 s"; exit 0; fi
+          STATUS=0; wait "$PID" || STATUS=$?
+          echo "::error::$APP quit within 10 s of launch (exit status $STATUS)"
+          sleep 5   # ReportCrash writes the .ips a moment after the crash
+          for F in $(ls -t ~/Library/Logs/DiagnosticReports/"$APP"* 2>/dev/null | head -3); do echo "== $F"; cat "$F"; done
+          exit 1
+
+      # ditto keeps symlinks and permissions that upload-artifact's own zip drops.
+      - name: Zip the signed app (notarization upload + Intel smoke test)
+        run: ditto -c -k --keepParent "build/export/$APP.app" "build/$APP.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: app
+          path: build/${{ env.APP }}.zip
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Notarize app, build DMG, notarize DMG
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          AUTH=(--key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID")
+          # notarytool can exit 0 on an Invalid submission, so check the status and print Apple's log.
+          notarize() {
+            xcrun notarytool submit "$1" "${AUTH[@]}" --wait --timeout 45m --output-format json | tee "$RUNNER_TEMP/notary.json"
+            if [ "$(jq -r .status "$RUNNER_TEMP/notary.json")" != Accepted ]; then
+              xcrun notarytool log "$(jq -r .id "$RUNNER_TEMP/notary.json")" "${AUTH[@]}"
+              return 1
+            fi
+          }
+          notarize "build/$APP.zip"
+          xcrun stapler staple "build/export/$APP.app"
+          mkdir -p build/dmg
+          ditto "build/export/$APP.app" "build/dmg/$APP.app"
+          ln -s /Applications build/dmg/Applications
+          DMG="build/$APP-$VERSION.dmg"
+          # hdiutil intermittently fails with "Resource busy" on hosted runners; -ov makes a retry safe.
+          for i in 1 2 3 4 5; do hdiutil create -volname "$APP" -srcfolder build/dmg -ov -format ULFO "$DMG" && break; [ $i = 5 ] && exit 1; sleep $((i*5)); done
+          codesign --timestamp -s "Developer ID Application" "$DMG"
+          notarize "$DMG"
+          xcrun stapler staple "$DMG"
+          spctl -vvv --assess --type exec "build/export/$APP.app"
+          spctl -vvv --assess --type open --context context:primary-signature "$DMG"
+          echo "DMG=$DMG" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dmg
+          path: ${{ env.DMG }}
+          retention-days: 7
+          if-no-files-found: error
+
+  smoke-intel:
+    needs: build
+    # GitHub's last Intel image (until Aug 2027). There is no hosted macOS 13 runner any more, so the deployment
+    # target itself is covered by beta testers on 2017–2019 Intel Macs.
+    runs-on: macos-15-intel
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: app
+          path: build
+
+      # Same test as build's "Launch smoke test (arm64)".
+      - name: Launch smoke test (Intel)
+        run: |
+          ditto -x -k "build/$APP.zip" build/export
+          echo "$(uname -m), macOS $(sw_vers -productVersion)"
+          "build/export/$APP.app/Contents/MacOS/$APP" & PID=$!
+          sleep 10
+          if kill -0 "$PID" 2>/dev/null; then kill "$PID"; echo "$APP launched and stayed up for 10 s"; exit 0; fi
+          STATUS=0; wait "$PID" || STATUS=$?
+          echo "::error::$APP quit within 10 s of launch (exit status $STATUS)"
+          sleep 5   # ReportCrash writes the .ips a moment after the crash
+          for F in $(ls -t ~/Library/Logs/DiagnosticReports/"$APP"* 2>/dev/null | head -3); do echo "== $F"; cat "$F"; done
+          exit 1
+
+  publish:
+    needs: [build, smoke-intel]
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write   # gh release create/upload
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: dmg
+          path: build
+
+      # Created as a draft and published after the uploads, so "latest" never points at a release without its DMG.
+      # Re-runnable: an existing release is reused and its assets replaced (--clobber).
+      - name: GitHub Release (notes from CHANGELOG.md)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          DMG="build/$APP-$VERSION.dmg"
+          python3 tools/changelog.py notes "$VERSION" --format md > build/notes.md
+          mkdir -p build/latest && cp "$DMG" "build/latest/$APP.dmg"
+          gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --draft --verify-tag --title "$APP $VERSION" --notes-file build/notes.md
+          gh release upload "$GITHUB_REF_NAME" "$DMG" "build/latest/$APP.dmg" -R "$GITHUB_REPOSITORY" --clobber
+          gh release edit "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --draft=false

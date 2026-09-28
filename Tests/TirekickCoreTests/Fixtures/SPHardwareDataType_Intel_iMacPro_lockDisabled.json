@@ -1,0 +1,21 @@
+{
+  "SPHardwareDataType" : [
+    {
+      "_name" : "hardware_overview",
+      "activation_lock_status" : "activation_lock_disabled",
+      "boot_rom_version" : "1037.60.58.0.0 (iBridge: 17.16.12551.0.0,0)",
+      "cpu_type" : "8-Core Intel Xeon W",
+      "current_processor_speed" : "3.2 GHz",
+      "l2_cache_core" : "1 MB",
+      "l3_cache" : "11 MB",
+      "machine_model" : "iMacPro1,1",
+      "machine_name" : "iMac Pro",
+      "number_processors" : 8,
+      "packages" : 1,
+      "physical_memory" : "32 GB",
+      "platform_cpu_htt" : "htt_enabled",
+      "platform_UUID" : "E664D52B-5FBC-5A68-******",
+      "serial_number" : "C02VT3******"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+# XcodeGen spec. Run `xcodegen generate` (CI does); the .xcodeproj is never committed.
+name: Tirekick
+options:
+  deploymentTarget:
+    macOS: "13.0"   # BUILD_PLAN §1: 2017–2019 Intel Macs, the ones being sold now, run macOS 13
+packages:
+  Tirekick:
+    path: .   # this repo's Package.swift (TirekickCore + TirekickMac). VERIFY: Xcode accepts a local package in the project's own folder.
+targets:
+  Tirekick:
+    type: application
+    platform: macOS
+    sources:
+      - App
+    dependencies:
+      - package: Tirekick
+        products:
+          - TirekickCore
+          - TirekickMac
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.everydayopen.tirekick
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        ENABLE_HARDENED_RUNTIME: "YES"
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: "NO"
+        DEAD_CODE_STRIPPING: "YES"
+        # Set directly instead of `info:`/`entitlements:`, which would regenerate (overwrite) these hand-written files.
+        INFOPLIST_FILE: App/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App/Tirekick.entitlements
+schemes:
+  Tirekick:
+    build:
+      targets:
+        Tirekick: all

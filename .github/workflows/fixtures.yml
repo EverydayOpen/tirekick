@@ -1,0 +1,88 @@
+# Dump what every allowlisted command prints on GitHub's arm64 and Intel macOS runners (docs/BUILD_PLAN.md §2.4),
+# so the Core parsers are tested against real output without a Mac. Kill-it-early date: Oct 2 (if profiles status
+# needs root, the lock checks get redesigned in week 1).
+#
+# Using the result: download the fixtures-* artifacts from the run, copy what the parsers need into
+# Tests/TirekickCoreTests/Fixtures with a row in its README (source: this workflow, runner image, date), and remove
+# the VERIFY marks they settle. Serials and UUIDs are masked before upload.
+#
+# The runners are virtual machines: expect a VirtualMac model, no battery (an empty ioreg array) and no Activation
+# Lock line (VERIFY each against the first dump). Real laptops come from beta testers' "Copy raw data".
+name: fixtures
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 4 * * 1"   # Mondays: a fresh dump to compare with Tests/TirekickCoreTests/Fixtures by hand
+
+permissions:
+  contents: read
+
+jobs:
+  dump:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-26, macos-15-intel]   # arm64, and the last Intel image (supported until Aug 2027)
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # Keep in sync with Command.all in Sources/TirekickCore/Model/Evidence.swift.
+      - name: Run the allowlist
+        run: |
+          mkdir out
+          # <name> <command...> -> out/<name>.stdout, .stderr, .status. A failing command is data, not an error.
+          run() { local n=$1 s=0; shift; "$@" > "out/$n.stdout" 2> "out/$n.stderr" || s=$?; echo "$s" > "out/$n.status"; }
+          for t in SPHardwareDataType SPPowerDataType SPStorageDataType SPNVMeDataType SPDisplaysDataType; do
+            run "$t" /usr/sbin/system_profiler -json "$t"
+          done
+          run ioreg_AppleSmartBattery /usr/sbin/ioreg -r -c AppleSmartBattery -a
+          run sysctl /usr/sbin/sysctl hw.model hw.memsize hw.nperflevels hw.perflevel0.name hw.perflevel0.physicalcpu \
+            hw.perflevel1.name hw.perflevel1.physicalcpu machdep.cpu.brand_string
+          run profiles_status /usr/bin/profiles status -type enrollment
+          run fdesetup_status /usr/bin/fdesetup status
+          # The app runs as the logged-in user, never root. Settles "does profiles status need root?" (VERIFY).
+          run profiles_status_nobody sudo -u nobody /usr/bin/profiles status -type enrollment
+          run fdesetup_status_nobody sudo -u nobody /usr/bin/fdesetup status
+          # What a user pastes for the company check (Command.abmHandoff; needs admin and internet).
+          run profiles_show_enrollment sudo /usr/bin/profiles show -type enrollment
+          run profiles_show_enrollment_nobody sudo -u nobody /usr/bin/profiles show -type enrollment
+          # The seller checklist counts this file's accounts; only whether it exists is recorded here.
+          run MobileMeAccounts_exists /bin/test -f "$HOME/Library/Preferences/MobileMeAccounts.plist"
+          { sw_vers; uname -m; echo "runner image: $ImageOS $ImageVersion"; } > out/about.txt
+
+      - name: Mask serials and UUIDs
+        run: |
+          python3 - <<'EOF'
+          import json, pathlib, re
+          out = pathlib.Path("out")
+          try:
+              serial = json.loads((out / "SPHardwareDataType.stdout").read_text())["SPHardwareDataType"][0]["serial_number"]
+          except Exception:
+              serial = ""
+          keys = "serial_number|platform_UUID|provisioning_UDID|device_serial|spnvme_serial|Serial|SerialNumber|BatterySerialNumber"
+          for p in out.iterdir():
+              t = p.read_text(encoding="utf-8", errors="replace")
+              if len(serial) >= 4:
+                  t = t.replace(serial, "X" * (len(serial) - 4) + serial[-4:])
+              t = re.sub(rf'("(?:{keys})"\s*[:=]\s*")[^"]*', r"\1XXXX", t)                       # JSON and ioreg text
+              t = re.sub(rf"(<key>(?:{keys})</key>\s*<string>)[^<]*", r"\1XXXX", t)                 # ioreg -a plist
+              p.write_text(t, encoding="utf-8")
+          EOF
+
+      - name: Summary
+        run: |
+          cat out/about.txt
+          for f in out/*.status; do n=$(basename "$f" .status); echo "== $n: exit $(cat "$f"), $(wc -c < "out/$n.stdout") bytes"; done
+          for n in sysctl profiles_status profiles_status_nobody fdesetup_status_nobody profiles_show_enrollment; do
+            echo "== $n"; cat "out/$n.stdout" "out/$n.stderr"
+          done
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: fixtures-${{ matrix.runner }}
+          path: out/
+          if-no-files-found: error

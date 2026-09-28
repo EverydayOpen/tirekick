@@ -1,0 +1,1 @@
+Error fetching Device Enrollment configuration: (34006) Error Domain=MCCloudConfigurationErrorDomain Code=34006 "The cloud configuration server is unavailable." UserInfo={NSLocalizedDescription=The cloud configuration server is unavailable., CloudConfigurationErrorType=CloudConfigurationFatalError}

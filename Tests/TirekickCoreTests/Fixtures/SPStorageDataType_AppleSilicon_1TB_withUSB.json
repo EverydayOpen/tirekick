@@ -1,0 +1,61 @@
+{
+  "SPStorageDataType" : [
+    {
+      "_name" : "Macintosh HD - Data",
+      "bsd_name" : "disk3s5",
+      "file_system" : "APFS",
+      "free_space_in_bytes" : 437436678144,
+      "ignore_ownership" : "no",
+      "mount_point" : "/System/Volumes/Data",
+      "physical_drive" : {
+        "device_name" : "APPLE SSD AP1024Z",
+        "is_internal_disk" : "yes",
+        "media_name" : "AppleAPFSMedia",
+        "medium_type" : "ssd",
+        "partition_map_type" : "unknown_partition_map_type",
+        "protocol" : "Apple Fabric",
+        "smart_status" : "Verified"
+      },
+      "size_in_bytes" : 994662584320,
+      "volume_uuid" : "7012B685-7F5C-4233-B297-1760B99624C3",
+      "writable" : "yes"
+    },
+    {
+      "_name" : "USB_TM_1TB",
+      "bsd_name" : "disk7s2",
+      "file_system" : "Case-sensitive APFS",
+      "free_space_in_bytes" : 555120910336,
+      "ignore_ownership" : "no",
+      "mount_point" : "/Volumes/USB_TM_1TB",
+      "physical_drive" : {
+        "is_internal_disk" : "no",
+        "media_name" : "AppleAPFSMedia",
+        "partition_map_type" : "unknown_partition_map_type",
+        "protocol" : "USB"
+      },
+      "size_in_bytes" : 999995129856,
+      "volume_uuid" : "FEBE33E6-7660-4035-B4EC-A37678C57473",
+      "writable" : "yes"
+    },
+    {
+      "_name" : "Macintosh HD",
+      "bsd_name" : "disk3s1s1",
+      "file_system" : "APFS",
+      "free_space_in_bytes" : 437436678144,
+      "ignore_ownership" : "no",
+      "mount_point" : "/",
+      "physical_drive" : {
+        "device_name" : "APPLE SSD AP1024Z",
+        "is_internal_disk" : "yes",
+        "media_name" : "AppleAPFSMedia",
+        "medium_type" : "ssd",
+        "partition_map_type" : "unknown_partition_map_type",
+        "protocol" : "Apple Fabric",
+        "smart_status" : "Verified"
+      },
+      "size_in_bytes" : 994662584320,
+      "volume_uuid" : "800AC495-E5D5-4F28-8FEE-692284AF3157",
+      "writable" : "no"
+    }
+  ]
+}

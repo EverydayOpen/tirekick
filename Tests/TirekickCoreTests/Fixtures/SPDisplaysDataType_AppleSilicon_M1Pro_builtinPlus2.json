@@ -1,0 +1,67 @@
+{
+  "SPDisplaysDataType" : [
+    {
+      "_name" : "Apple M1 Pro",
+      "spdisplays_metalfamily" : "spdisplays_mtlgpufamilyapple7",
+      "spdisplays_ndrvs" : [
+        {
+          "_name" : "Color LCD",
+          "_spdisplays_display-product-id" : "a04e",
+          "_spdisplays_display-serial-number" : "fd626d62",
+          "_spdisplays_display-vendor-id" : "610",
+          "_spdisplays_display-week" : "0",
+          "_spdisplays_display-year" : "0",
+          "_spdisplays_displayID" : "1",
+          "_spdisplays_pixels" : "3024 x 1964",
+          "_spdisplays_resolution" : "1512 x 982 @ 120.00Hz",
+          "spdisplays_ambient_brightness" : "spdisplays_no",
+          "spdisplays_connection_type" : "spdisplays_internal",
+          "spdisplays_display_type" : "spdisplays_built-in-liquid-retina-xdr",
+          "spdisplays_main" : "spdisplays_yes",
+          "spdisplays_mirror" : "spdisplays_off",
+          "spdisplays_online" : "spdisplays_yes",
+          "spdisplays_pixelresolution" : "spdisplays_3024x1964Retina"
+        },
+        {
+          "_name" : "DELL U2414H",
+          "_spdisplays_display-product-id" : "a0a2",
+          "_spdisplays_display-serial-number" : "324c4853",
+          "_spdisplays_display-vendor-id" : "10ac",
+          "_spdisplays_display-week" : "28",
+          "_spdisplays_display-year" : "2015",
+          "_spdisplays_displayID" : "2",
+          "_spdisplays_pixels" : "1080 x 1920",
+          "_spdisplays_resolution" : "1080 x 1920 @ 60.00Hz",
+          "spdisplays_ambient_brightness" : "spdisplays_yes",
+          "spdisplays_mirror" : "spdisplays_off",
+          "spdisplays_online" : "spdisplays_yes",
+          "spdisplays_pixelresolution" : "1080 x 1920",
+          "spdisplays_resolution" : "1080 x 1920 @ 60.00Hz",
+          "spdisplays_rotation" : 90
+        },
+        {
+          "_name" : "DELL U2414H",
+          "_spdisplays_display-product-id" : "a0a2",
+          "_spdisplays_display-serial-number" : "3346384c",
+          "_spdisplays_display-vendor-id" : "10ac",
+          "_spdisplays_display-week" : "44",
+          "_spdisplays_display-year" : "2013",
+          "_spdisplays_displayID" : "3",
+          "_spdisplays_pixels" : "1920 x 1080",
+          "_spdisplays_resolution" : "1920 x 1080 @ 60.00Hz",
+          "spdisplays_ambient_brightness" : "spdisplays_yes",
+          "spdisplays_mirror" : "spdisplays_off",
+          "spdisplays_online" : "spdisplays_yes",
+          "spdisplays_pixelresolution" : "spdisplays_1080p",
+          "spdisplays_resolution" : "1920 x 1080 @ 60.00Hz",
+          "spdisplays_rotation" : "spdisplays_supported"
+        }
+      ],
+      "spdisplays_vendor" : "sppci_vendor_Apple",
+      "sppci_bus" : "spdisplays_builtin",
+      "sppci_cores" : "14",
+      "sppci_device_type" : "spdisplays_gpu",
+      "sppci_model" : "Apple M1 Pro"
+    }
+  ]
+}

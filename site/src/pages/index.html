@@ -1,0 +1,205 @@
+<!--meta {"title": "Tirekick: check a used Mac for locks, MDM, battery and SSD before you pay", "description": "A free, open-source Mac app you open on a second-hand Mac. In about two minutes it tells you if it's Activation-Locked or tied to a company, how worn the battery and SSD are, and whether it still gets macOS updates."}-->
+<script type="application/ld+json">{{softwareJSON}}</script>
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#34c759"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M7 12.4l3.4 3.4L17.2 9"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path fill="#ff9f0a" d="M10.3 3.4a2 2 0 0 1 3.4 0l8.6 15a2 2 0 0 1-1.7 3H3.4a2 2 0 0 1-1.7-3z"/><path fill="#fff" d="M11 8.5h2l-.3 6.5h-1.4zM12 16.3a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><path fill="#ff3b30" d="M8.1 1.5h7.8l5.6 5.6v7.8l-5.6 5.6H8.1l-5.6-5.6V7.1z"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" d="M8.6 8.6l6.8 6.8M15.4 8.6l-6.8 6.8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+</svg>
+
+<section class="hero">
+  <div class="wrap narrow center">
+    <img class="hero-icon" src="/icon.png" width="128" height="128" alt="Tirekick app icon">
+    <h1>{{name}}</h1>
+    <p class="promise">{{tagline}}</p>
+    <p class="sub">Locks, battery, SSD, keys, screen and updates in two minutes. Free, open source, offline.</p>
+    <p class="actions"><a class="button" href="/download/">Download free</a> <a class="button secondary" href="https://github.com/{{releasesRepo}}">Source on GitHub</a></p>
+    <p class="small muted">macOS {{minMacOS}} or later · Apple silicon and Intel · No account, no network</p>
+  </div>
+
+  <div class="wrap">
+    <!-- Sample report card (the app's ReportCardView, as HTML). Replace with a real screenshot once the app runs on a Mac. -->
+    <figure class="report" aria-label="Illustration with sample data: a Tirekick report card that says Walk away.">
+      <p class="report-head"><img src="/favicon.png" width="22" height="22" alt=""><span><b>Tirekick report</b> · MacBook Pro (14-inch, 2021) · M1 Pro 10-core · 16 GB · 512 GB</span></p>
+      <p class="report-verdict"><svg role="img" aria-label="Walk away"><use href="#i-stop"/></svg>Walk away</p>
+      <p class="report-summary">Assigned to “Acme Corp” in Apple Business. After it's erased, it will lock itself to them again. Only that organization can release it.</p>
+      <ul class="report-rows" role="list">
+        <li><svg role="img" aria-label="OK"><use href="#i-ok"/></svg>Activation Lock is off</li>
+        <li><svg role="img" aria-label="OK"><use href="#i-ok"/></svg>Not managed by any organization</li>
+        <li><svg role="img" aria-label="Walk away"><use href="#i-stop"/></svg>Assigned to “Acme Corp” in Apple Business</li>
+        <li><svg role="img" aria-label="Check"><use href="#i-warn"/></svg>Battery at 78%, 540 of 1,000 rated cycles</li>
+        <li><svg role="img" aria-label="OK"><use href="#i-ok"/></svg>SSD reports healthy (SMART: Verified)</li>
+        <li><svg role="img" aria-label="OK"><use href="#i-ok"/></svg>Gets macOS 27, the current version</li>
+        <li><svg role="img" aria-label="OK"><use href="#i-ok"/></svg>Keyboard: 78 of 78 keys</li>
+        <li><svg role="img" aria-label="OK"><use href="#i-ok"/></svg>Display: passed</li>
+      </ul>
+      <p class="report-foot">Checked 12 Nov 2026 on this Mac · Serial ····G7QX · Only trust a check you run yourself: Tirekick (free)</p>
+    </figure>
+    <p class="small muted center">Illustration with sample data. “Acme Corp” is made up.</p>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="problem-h">
+  <div class="wrap">
+    <h2 id="problem-h" class="center">What goes wrong with used Macs</h2>
+    <p class="lede center">The expensive surprises don't show in photos, and most of them don't show until after you've paid.</p>
+    <div class="grid three">
+      <div class="card">
+        <h3>“It asked for someone else's Apple Account.”</h3>
+        <p>With Find My on, a Mac with Apple silicon or a T2 chip is Activation-Locked to its owner's account. After an erase it won't set up without their password.</p>
+      </div>
+      <div class="card">
+        <h3>“After I erased it, a company took it over.”</h3>
+        <p>A Mac a company bought for staff can stay assigned to it in Apple Business. Erase it and setup shows Remote Management, and the company is back in charge.</p>
+      </div>
+      <div class="card">
+        <h3>“The battery lasts an hour.”</h3>
+        <p>Battery health, cycle count and SSD health are in macOS, but few sellers show them, and fewer buyers know where to look.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="checks" aria-labelledby="checks-h">
+  <div class="wrap">
+    <h2 id="checks-h" class="center">What it checks</h2>
+    <p class="lede center">Every check runs one of Apple's own tools and shows you its exact output. No guesswork, and nothing you can't check by hand.</p>
+    <div class="table-scroll" role="region" aria-label="What Tirekick checks and how" tabindex="0">
+      <table>
+        <thead><tr><th scope="col">Check</th><th scope="col">What Tirekick runs or reads</th><th scope="col">What it tells you</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Activation Lock</th><td><code>/usr/sbin/system_profiler -json SPHardwareDataType</code></td><td>On: <b>walk away</b> unless the seller turns off Find My in front of you and it checks again as off.</td></tr>
+          <tr><th scope="row">Managed by an organization (MDM)</th><td><code>/usr/bin/profiles status -type enrollment</code></td><td>Enrolled through Automated Device Enrollment or MDM: <b>walk away</b>, unless it's your employer's Mac.</td></tr>
+          <tr><th scope="row">Assigned to a company</th><td>You run <code>sudo /usr/bin/profiles show -type enrollment</code> in Terminal and paste the result. Your password goes into Terminal, never into Tirekick.</td><td>An organization in Apple Business or Apple School Manager: <b>walk away</b>, and Tirekick names it.</td></tr>
+          <tr><th scope="row">What you're buying</th><td><code>/usr/sbin/system_profiler -json SPHardwareDataType</code>, <code>SPDisplaysDataType</code> for GPU cores, and <code>/usr/sbin/sysctl hw.model hw.memsize hw.nperflevels hw.perflevel0.name hw.perflevel0.physicalcpu hw.perflevel1.name hw.perflevel1.physicalcpu machdep.cpu.brand_string</code></td><td>Model, year, chip, cores, memory, storage and serial, to compare with the listing.</td></tr>
+          <tr><th scope="row">Battery</th><td><code>/usr/sbin/system_profiler -json SPPowerDataType</code> and <code>/usr/sbin/ioreg -r -c AppleSmartBattery -a</code></td><td>Maximum capacity, and cycles against the battery's rating (1,000 on recent Macs). Below 80%, or macOS says Check Battery: <b>check</b>.</td></tr>
+          <tr><th scope="row">SSD</th><td><code>/usr/sbin/system_profiler -json SPStorageDataType</code> and <code>SPNVMeDataType</code></td><td>SMART status and capacity. SMART failing: <b>walk away</b>.</td></tr>
+          <tr><th scope="row">macOS updates</th><td>A model list built into the app, and the macOS version it's running</td><td>Whether it gets macOS 27. Intel Macs stop at macOS 26.</td></tr>
+          <tr><th scope="row">Seller: signed out of iCloud</th><td>The number of accounts in <code>~/Library/Preferences/MobileMeAccounts.plist</code>, never which account</td><td>Still signed in: <b>check</b>.</td></tr>
+          <tr><th scope="row">Seller: FileVault</th><td><code>/usr/bin/fdesetup status</code></td><td>Off: <b>check</b>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted center">“Walk away” is kept for hard facts: Activation Lock on, MDM or company enrollment, SMART failing. Everything else is a finding for you to weigh.</p>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="tests-h">
+  <div class="wrap">
+    <h2 id="tests-h" class="center">Then test what you'll touch every day</h2>
+    <p class="lede center">Six guided tests, each ending in Pass, Problem or Skip.</p>
+    <div class="grid three">
+      <div class="card"><h3>Keyboard</h3><p>Press every key and watch it light up on an ANSI or ISO layout. Keys macOS keeps for itself get a tick-it-yourself fallback.</p></div>
+      <div class="card"><h3>Display</h3><p>Full-screen white, black, red, green, blue, gray and a checkerboard, for dead pixels, tint and backlight bleed.</p></div>
+      <div class="card"><h3>Speakers</h3><p>A tone in the left speaker, the right, then both, so a dead channel can't hide.</p></div>
+      <div class="card"><h3>Microphone</h3><p>A live level meter. Talk and watch it move. Nothing is recorded.</p></div>
+      <div class="card"><h3>Camera</h3><p>A live preview, on only while the test is open. Nothing is recorded or saved.</p></div>
+      <div class="card"><h3>Trackpad</h3><p>Click, Force Click and two-finger scroll, each ticked off as it works.</p></div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="card-h">
+  <div class="wrap narrow">
+    <h2 id="card-h" class="center">A report card you can share</h2>
+    <p class="lede center">Save it as a PNG or a PDF, or copy it as text. Sellers attach it to listings; buyers keep it as a record.</p>
+    <div class="card">
+      <ul class="checks" role="list">
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg>The serial number is masked to its last 4 characters by default.</li>
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg>No user name, computer name or Apple Account, ever.</li>
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg>The PDF includes every command and its raw output, so anyone can see where each line came from.</li>
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg>Every card says “Only trust a check you run yourself.” A picture is easy to edit; the app is free to run.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="limits" class="band" aria-labelledby="limits-h">
+  <div class="wrap narrow">
+    <h2 id="limits-h" class="center">What it can't tell you</h2>
+    <p class="lede center">Tirekick reports what macOS reports. Some things no app on the Mac can see:</p>
+    <div class="card">
+      <ul class="checks" role="list">
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg>Whether the Mac was reported lost or stolen. No public lookup exists.</li>
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg>Whether an Intel Mac has a firmware password (reading it needs root).</li>
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg>Parts and repair history, and liquid damage.</li>
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg>Whether the seller owns it. Ask for the receipt.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="never" aria-labelledby="never-h">
+  <div class="wrap narrow center">
+    <h2 id="never-h">It will never help bypass MDM or Activation Lock</h2>
+    <p class="lede center">Tirekick doesn't remove, hide or work around either, and never will. A “bypass” doesn't take the Mac out of the organization's account, so the lock can come back after an update or an erase. Only the owner can turn off Activation Lock, and only the organization can release a Mac it owns.</p>
+  </div>
+</section>
+
+<section id="privacy" class="band" aria-labelledby="privacy-h">
+  <div class="wrap">
+    <h2 id="privacy-h" class="center">Runs offline. Sends nothing. Reads nothing personal. Changes nothing.</h2>
+    <div class="grid two">
+      <div class="card"><h3>Runs offline</h3><p>Tirekick works without a network connection. It has no update check, no analytics and no crash reporting.</p></div>
+      <div class="card"><h3>Sends nothing</h3><p>Nothing leaves the Mac unless you save or copy a report and share it yourself.</p></div>
+      <div class="card"><h3>Reads nothing personal</h3><p>It reads hardware and system status, not files, mail or photos. For the seller checklist it counts iCloud accounts, never reading which one.</p></div>
+      <div class="card"><h3>Changes nothing</h3><p>It never deletes, moves or changes anything, and never signs anyone out. The only file Tirekick itself writes is a report you save. It runs no shell, only the five Apple tools in the table above.</p></div>
+    </div>
+    <p class="small muted center"><a href="/privacy/">Privacy policy</a> · <a href="https://github.com/{{releasesRepo}}">Read the source</a></p>
+  </div>
+</section>
+
+<section id="guides" aria-labelledby="guides-h">
+  <div class="wrap">
+    <h2 id="guides-h" class="center">Guides</h2>
+    <p class="lede center">The same checks, by hand, for when you can't run the app.</p>
+    <div class="grid two">
+      <a class="card" href="/guides/check-used-mac-for-mdm/"><h3>How to check a used Mac for MDM</h3><p>Find out whether a company manages the Mac, or will take it back after an erase.</p></a>
+      <a class="card" href="/guides/check-activation-lock/"><h3>How to check Activation Lock</h3><p>Where macOS shows it, and what the seller has to do before you pay.</p></a>
+      <a class="card" href="/guides/used-mac-meetup-checklist/"><h3>Used-Mac meetup checklist</h3><p>Everything to check in ten minutes, printable or on your phone.</p></a>
+      <a class="card" href="/guides/selling-intel-mac-after-macos-27/"><h3>Selling an Intel Mac after macOS 27</h3><p>How to prepare it, erase it and give buyers a listing they can trust.</p></a>
+    </div>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="faq-h">
+  <div class="wrap narrow">
+    <h2 id="faq-h" class="center">Questions</h2>
+    <details>
+      <summary>Is it really free?</summary>
+      <p>Yes. Every feature, on every Mac, with no account, ads or in-app purchases. The source code is on <a href="https://github.com/{{releasesRepo}}">GitHub</a> under the MIT License.</p>
+    </details>
+    <details>
+      <summary>The Mac was erased and is at the setup screen. Can I still use it?</summary>
+      <p>Go through setup connected to Wi-Fi or a phone hotspot, finish with a throwaway local account and no Apple Account, then open Tirekick from a USB stick. If setup asks for someone else's Apple Account, it's Activation-Locked. A Remote Management screen means an organization owns it. Walk away from either.</p>
+    </details>
+    <details>
+      <summary>Why does the company check need Terminal?</summary>
+      <p>Asking Apple whether a Mac is assigned to an organization needs administrator rights and the internet. Tirekick has neither by design: it never asks for your password and never goes online. So it shows you one command to run in Terminal, and reads the result you paste back.</p>
+    </details>
+    <details>
+      <summary>Which Macs does it run on?</summary>
+      <p>Any Mac with macOS {{minMacOS}} or later, Apple silicon or Intel. Older Macs that stop at macOS 12 can't run it, but the <a href="/guides/used-mac-meetup-checklist/">meetup checklist</a> lists the same checks by hand.</p>
+    </details>
+    <details>
+      <summary>Can a seller fake the report?</summary>
+      <p>Anyone can edit a picture. That's why every card says “Only trust a check you run yourself.” Tirekick is free, so run it on the Mac in front of you.</p>
+    </details>
+    <details>
+      <summary>Why isn't it on the Mac App Store?</summary>
+      <p>It runs Apple's own tools, like <code>system_profiler</code> and <code>profiles</code>, which the App Store's sandbox doesn't allow. It's signed with an Apple Developer ID and notarized by Apple.</p>
+    </details>
+    <details>
+      <summary>Something looks wrong. Where do I get help?</summary>
+      <p>Open an issue on <a href="{{issuesURL}}">GitHub</a>. The <a href="/support/">support page</a> shows how to include the raw output, with the serial masked, so we can see what your Mac reported.</p>
+    </details>
+  </div>
+</section>
+
+<section class="cta" aria-labelledby="cta-h">
+  <div class="wrap narrow center">
+    <h2 id="cta-h">Check it before you pay. It's free.</h2>
+    <p class="actions"><a class="button" href="/download/">Download free</a></p>
+    <p class="small muted">macOS {{minMacOS}} or later · Apple silicon and Intel</p>
+  </div>
+</section>

@@ -1,0 +1,19 @@
+{
+  "SPHardwareDataType" : [
+    {
+      "_name" : "hardware_overview",
+      "activation_lock_status" : "activation_lock_enabled",
+      "boot_rom_version" : "18000.101.6",
+      "chip_type" : "Apple M5 Max",
+      "machine_model" : "Mac17,6",
+      "machine_name" : "MacBook Pro",
+      "model_number" : "Z1N20001GLL/A",
+      "number_processors" : "proc 18:6:0:12",
+      "os_loader_version" : "18000.101.6",
+      "physical_memory" : "128 GB",
+      "platform_UUID" : "xxxxxxxxxxxxxxx",
+      "provisioning_UDID" : "xxxxxxxxxxxxxxx",
+      "serial_number" : "xxxxxxxxxxxxxxx"
+    }
+  ]
+}

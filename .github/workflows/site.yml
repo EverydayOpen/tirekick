@@ -1,0 +1,52 @@
+# Build the website and deploy it to this repo's gh-pages branch (created on the first run).
+# The deploy never deletes or overwrites CNAME, which exists only if you add a custom domain (docs/GO_LIVE.md step 3).
+#
+# Enabling GitHub Pages (once, after the first run): Settings › Pages › Build and deployment › Source "Deploy from a
+# branch", branch gh-pages, folder / (root). The site is then https://everydayopen.github.io/tirekick/, which must
+# equal site/site.json baseURL.
+name: site
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", "CHANGELOG.md", "tools/build_site.py", "tools/changelog.py", ".github/workflows/site.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency: site   # two deploys never push at once; a newer pending run replaces an older one
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # pushes gh-pages with github.token
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build and check
+        run: |
+          # /download/ is built from site.json, so it must name this repo, where release.yml publishes the DMG.
+          [ "$(jq -r .releasesRepo site/site.json)" = "$GITHUB_REPOSITORY" ] || { echo "::error::site/site.json releasesRepo must equal $GITHUB_REPOSITORY"; exit 1; }
+          # Every canonical, feed and sitemap URL comes from baseURL, and the legal pages name owner and governingLaw.
+          jq -e '[.baseURL, .owner, .governingLaw] | all(test("REPLACE_ME|OWNER") | not)' site/site.json > /dev/null || { echo "::error::Fill site/site.json baseURL, owner and governingLaw before deploying (docs/GO_LIVE.md)"; exit 1; }
+          python3 tools/build_site.py --check
+          python3 tools/build_site.py
+
+      - name: Deploy to gh-pages (keeps CNAME)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REMOTE="https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git"
+          git clone --depth 1 --branch gh-pages "$REMOTE" pages 2>/dev/null \
+            || { git init -b gh-pages pages && git -C pages remote add origin "$REMOTE"; }
+          rsync -a --delete --exclude .git --exclude CNAME site/_dist/ pages/
+          cd pages
+          git add -A
+          if git diff --cached --quiet; then echo "Site unchanged"; exit 0; fi
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -m "site ${GITHUB_SHA::7}"
+          git push origin gh-pages

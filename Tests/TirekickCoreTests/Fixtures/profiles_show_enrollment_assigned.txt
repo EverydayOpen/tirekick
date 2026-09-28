@@ -1,0 +1,42 @@
+Device Enrollment configuration:
+{
+    AllowPairing = 1;
+    AnchorCertificates =     (
+        {length = 872, bytes = 0x30820364 3082024c a0030201 02020900 ... 1b70eb29 e243dfba }
+    );
+    AwaitDeviceConfigured = 1;
+    ConfigurationURL = "https://mdscentral.local:8443/mdm/enroll";
+    IsMDMUnremovable = 0;
+    IsMandatory = 1;
+    IsMultiUser = 0;
+    IsSupervised = 1;
+    MDMProtocolVersion = 1;
+    OrganizationAddress = "34 W. Chicago Ave, STE A, Naperville, IL 60540";
+    OrganizationAddressLine1 = "34 W. Chicago Ave";
+    OrganizationAddressLine2 = "STE A";
+    OrganizationCity = Naperville;
+    OrganizationCountry = USA;
+    OrganizationEmail = "support@twocanoes.com";
+    OrganizationName = "Twocanoes Software";
+    OrganizationPhone = "630 555 1212";
+    OrganizationSupportPhone = "630 555 1212";
+    OrganizationZipCode = 60540;
+    SkipSetup =     (
+        Appearance,
+        AppleID,
+        Biometric,
+        Diagnostics,
+        DisplayTone,
+        Location,
+        Payment,
+        Privacy,
+        Restore,
+        ScreenTime,
+        Siri,
+        TOS,
+        FileVault,
+        iCloudDiagnostics,
+        iCloudStorage,
+        Registration
+    );
+}

@@ -1,0 +1,10 @@
+{
+  "SPPowerDataType" : [
+    {
+      "sppower_battery_health_info" : {
+        "sppower_battery_cycle_count" : 745,
+        "sppower_battery_health" : "Check Battery"
+      }
+    }
+  ]
+}

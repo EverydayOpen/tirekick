@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+  <dict>
+    <key>AppleRawMaxCapacity</key>
+    <integer>8179</integer>
+    <key>CycleCount</key>
+    <integer>35</integer>
+    <key>DesignCapacity</key>
+    <integer>8694</integer>
+    <key>DesignCycleCount9C</key>
+    <integer>1000</integer>
+    <key>MaxCapacity</key>
+    <integer>100</integer>
+    <key>NominalChargeCapacity</key>
+    <integer>8423</integer>
+    <key>PermanentFailureStatus</key>
+    <integer>0</integer>
+  </dict>
+</array>
+</plist>

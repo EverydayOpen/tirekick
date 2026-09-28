@@ -1,0 +1,3 @@
+Enrolled via DEP: Yes
+MDM enrollment: Yes (User Approved)
+MDM server: https://applemdm.example.com/some/path?foo=bar

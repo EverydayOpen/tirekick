@@ -1,0 +1,119 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "23 4 * * 1"   # Mondays: swift test (incl. collectAll on this Mac) on the current macos-26 image
+
+permissions:
+  contents: read
+
+jobs:
+  # TirekickCore is Foundation-only; on Linux Package.swift defines just the Core targets.
+  core-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container: swift:6.2   # the compiler BUILD_PLAN targets (Xcode 26 ships Swift 6.2+)
+    steps:
+      - uses: actions/checkout@v7
+      - run: swift build --target TirekickCore && swift test --filter TirekickCoreTests
+
+  macos:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Select Xcode 26
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app && xcodebuild -version
+
+      # Core and Mac tests; the Mac tests also run collectAll() on this runner.
+      - run: swift test
+
+      # Release, universal, unsigned: the configuration release.yml archives.
+      - name: Build app
+        run: |
+          brew install xcodegen
+          xcodegen generate
+          xcodebuild -project Tirekick.xcodeproj -scheme Tirekick -configuration Release \
+            -destination 'generic/platform=macOS' ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
+
+  # The safety rules (docs/BUILD_PLAN.md §3) and repo checks. GNU grep on Linux: the regexes use \b.
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      # Each check prints its hits and fails. Only Sources and App are searched, so tests are exempt.
+      - name: Safety greps (BUILD_PLAN §3)
+        run: |
+          fail=0
+          check() { if [ -n "$2" ]; then echo "$2"; echo "::error::$1"; fail=1; fi; }
+          S='--include=*.swift'
+          check "Read-only and no shell: no delete, trash, move, copy, link, shell, env, AppleScript, NSTask, Process.run, system(), popen(), posix_spawn() or exec*()" \
+            "$(grep -rnsE "$S" 'removeItem\(|trashItem\(|recycle\(|unlink\(|rmdir\(|moveItem\(|replaceItem\(|copyItem\(|linkItem\(|createSymbolicLink\(|"/bin/(ba|z)?sh"|"/usr/bin/env"|NSAppleScript|NSUserAppleScriptTask|NSTask|Process\.run\(|(^|[^.[:alnum:]_])(system|popen|posix_spawnp?|exec[lv]p?e?)\(' Sources App || true)"
+          check "Process only in Sources/TirekickMac/Platform/ProcessRunner.swift" \
+            "$(grep -rlsE "$S" '\bProcess\b' Sources App | grep -vx 'Sources/TirekickMac/Platform/ProcessRunner.swift' || true)"
+          check "ProcessRunner.run only in Sources/TirekickMac/Collector.swift" \
+            "$(grep -rls "$S" 'ProcessRunner\.run' Sources App | grep -vx 'Sources/TirekickMac/Collector.swift' || true)"
+          check "Command values only in Sources/TirekickCore/Model/Evidence.swift" \
+            "$(grep -rns "$S" 'Command("' Sources App | grep -v '^Sources/TirekickCore/Model/Evidence.swift:' || true)"
+          check "Executables: only /usr/sbin/system_profiler, ioreg, sysctl and /usr/bin/profiles, fdesetup" \
+            "$(grep -rnosE "$S" '"/(usr|s?bin|opt)/[^"]+"' Sources App | grep -vE '"/usr/sbin/(system_profiler|ioreg|sysctl)"$|"/usr/bin/(profiles|fdesetup)"$' || true)"
+          check "profiles and fdesetup only ever get status as their first argument" \
+            "$(grep -nsP '"/usr/bin/(profiles|fdesetup)",\s*\[(?!"status")' Sources/TirekickCore/Model/Evidence.swift || true)"
+          check "No network: no URLSession, Network framework, sockets, web views, AsyncImage or Data/String(contentsOf:)" \
+            "$(grep -rnsE "$S" 'URLSession|NWConnection|NWPathMonitor|NWBrowser|import Network|CFStream|NSURLConnection|WKWebView|WebKit|AsyncImage|(NS)?(Data|String)\(contentsOf:' Sources App || true)"
+          check "Writes only in App/Export.swift (NSSavePanel); no stored settings" \
+            "$(grep -rnsE "$S" '\.write\(to:|write\(toFile:|createFile\(|FileHandle\(forWriting|createDirectory\(|UserDefaults|@AppStorage|@SceneStorage' Sources App | grep -v '^App/Export.swift:' || true)"
+          check "macOS 14+ APIs only in App/DesignSystem/Compat.swift, behind if #available" \
+            "$(grep -rnsE "$S" 'ContentUnavailableView|\.onKeyPress|\.symbolEffect|Animation\.smooth|\.smooth\(|@Observable|@Bindable|\.inspector\(|\.contentMargins|Button\([^)]*systemImage:|initial:|AccessibilityNotification|backgroundProminence|SettingsLink|containerRelativeFrame|\.scrollPosition\(' Sources App | grep -v '^App/DesignSystem/Compat.swift:' || true)"
+          check "No Sparkle: the app never goes online" \
+            "$(grep -rnsE 'Sparkle|SUFeedURL|SUPublicEDKey' App Sources project.yml || true)"
+          check "Opening apps/URLs only for Terminal, Help and Privacy Settings" \
+            "$(grep -rnsE "$S" 'NSWorkspace|LSOpen|openURL|\bLink\(' Sources App | grep -vE '^App/AppModel\.swift:[0-9]+:.*Terminal\.app"\),$|^App/AppModel\.swift:[0-9]+: *configuration: NSWorkspace\.OpenConfiguration\(\)\)$|^App/TirekickApp\.swift:[0-9]+:.*open\(Links\.website\)|^App/Tests/TestScaffold\.swift:[0-9]+:.*open\(url\)' || true)"
+          exit $fail
+
+      # "Nothing shipped names your machine": no home paths, no zsh prompts but the example jane@Janes-MacBook ~ %. /Users/Shared is macOS's,
+      # jane/you are the docs' and tests' example user ("njane" is jane after a \n in a Swift string).
+      - name: No home paths in tracked files
+        run: |
+          hits=$(git ls-files -z | xargs -0 grep -noIE '/Users/[A-Za-z0-9._-]+|[A-Za-z]:[\/]+[Uu]sers[\/]+[A-Za-z0-9._-]|[A-Za-z0-9._-]+@[A-Za-z0-9._-]+ ~ %' \
+            | grep -vE ':/Users/(Shared|you|jane)$|:n?jane@Janes-' || true)
+          if [ -n "$hits" ]; then
+            echo "$hits"
+            echo "::error::Personal home paths or Terminal prompts above: use ~, <scratchpad>, a repo-relative path or jane@Janes-MacBook"
+            exit 1
+          fi
+
+      # "No button can do nothing." ponytail: every role: .cancel button is exempt (a dialog's Cancel dismisses
+      # itself); check the enclosing modifier if an empty Cancel ever lands in a sheet.
+      - name: No empty Button actions in App/
+        run: |
+          python3 - <<'EOF'
+          import pathlib, re, sys
+          bad = [f"{p}:{s.count(chr(10), 0, m.start()) + 1}: {m[0]}" for p in sorted(pathlib.Path("App").rglob("*.swift"))
+                 for s in [p.read_text(encoding="utf-8")] for m in re.finditer(r"\bButton\b[^{}\n]*\{\s*\}", s)
+                 if "role: .cancel" not in m[0]]
+          for b in bad:
+              print(f"::error::Button with an empty action: {b}")
+          sys.exit(1 if bad else 0)
+          EOF
+
+      # Replacing these Edit menu groups kills ⌘C and ⌘V, which the Copy and Paste Result flow needs.
+      - name: Standard Edit menu kept
+        run: |
+          if grep -rnE 'replacing: *\.(pasteboard|textEditing)\b' App Sources; then
+            echo "::error::Keep the standard Edit menu: never replace .pasteboard or .textEditing"
+            exit 1
+          fi
+
+      - run: python3 tools/changelog.py --self-test
+      - run: python3 tools/build_site.py --check
+      - run: bash tools/doctor.sh --ci
