@@ -21,9 +21,7 @@ struct MicrophoneTestView: View {
             if let problem {
                 PermissionProblem(text: problem, pane: denied ? "Privacy_Microphone" : nil)
             } else {
-                Gauge(value: level) { Text("Input level") }
-                    .labelsHidden()
-                    .frame(maxWidth: 400)
+                LevelMeter(level: level)
             }
         }
         // Opening the test is what asks for access (BUILD_PLAN §3.7).
@@ -50,5 +48,29 @@ struct MicrophoneTestView: View {
         } catch {
             problem = "Couldn't start the microphone. Another app may be using it. Quit that app and open the test again, or choose Skip."
         }
+    }
+}
+
+/// A segmented meter set into the deck: segments light hi-vis as the microphone registers sound (lime means
+/// "registered"). Never animated; it moves only with the sound.
+private struct LevelMeter: View {
+    let level: Double
+
+    var body: some View {
+        let segments = 24
+        let lit = Int((level * Double(segments)).rounded())
+        HStack(spacing: 3) {
+            ForEach(0..<segments, id: \.self) { i in
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(i < lit ? Brand.hiVis : Color.primary.opacity(0.12))
+            }
+        }
+        .frame(height: 28)
+        .padding(Space.s)
+        .recessedPanel(cornerRadius: 2 + Space.s)
+        .frame(maxWidth: 440)
+        .accessibilityElement()
+        .accessibilityLabel("Input level")
+        .accessibilityValue("\(Int((level * 100).rounded()))%")
     }
 }

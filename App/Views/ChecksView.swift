@@ -17,13 +17,13 @@ struct ChecksView: View {
                 Section("Checks") {
                     ForEach(checks.prefix(revealed)) { check in
                         CheckRow(check: check)
-                            .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
+                            .transition(.flip(reduceMotion))
                     }
                 }
 
                 Section(model.mode == .buying ? "What you're buying" : "This Mac") {
-                    ForEach(ReportText.specRows(facts, maskSerial: false), id: \.label) {
-                        LabeledContent($0.label, value: $0.value)
+                    ForEach(ReportText.specRows(facts, maskSerial: false), id: \.label) { row in
+                        LabeledContent(row.label) { Text(row.value).monospacedDigit() }
                     }
                     if model.mode == .buying {
                         Picker("Matches the listing?", selection: $model.listingMatches) {
@@ -36,32 +36,48 @@ struct ChecksView: View {
                 .textSelection(.enabled)
             }
             .formStyle(.grouped)
+            .scrollContentBackground(.hidden)   // the bay shows between the sections
             .task { try? await reveal(checks.count) }
         } else {
-            VStack(spacing: Space.m) {
-                ProgressView().controlSize(.large)
-                Text("Checking this Mac…").foregroundStyle(.secondary)
+            VStack(spacing: Space.xxl) {
+                LaptopView(scanning: true)
+                HStack(spacing: Space.xs) {
+                    ProgressView().controlSize(.small)
+                    Text("Checking this Mac…").foregroundStyle(.secondary)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear { revealed = 0 }
         }
     }
 
+    /// A new verdict turns down over the old one like a split-flap (MOTION.md §5.4). The well sits under a white key
+    /// light, never one in the verdict's colour: severity never glows.
     private func banner(_ checks: [Check]) -> some View {
         let verdict = Verdict.overall(checks.map(\.verdict))
         return HStack(spacing: Space.s) {
-            HStack(spacing: Space.s) {
-                VerdictIcon(verdict: verdict, size: 28, showsWord: false)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: Space.xxs) {
-                    Text(verdict.bannerTitle(for: model.mode))
-                        .font(.title2.weight(.semibold))
-                    Text(ReportText.summaryLine(checks))
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+            ZStack(alignment: .leading) {
+                HStack(spacing: Space.m) {
+                    VerdictIcon(verdict: verdict, size: 28, showsWord: false)
+                        .well(verdict.color, size: 56)
+                        .background {
+                            RadialGradient(colors: [Color.white.opacity(0.12), .clear], center: .center, startRadius: 0, endRadius: 48)
+                                .frame(width: 96, height: 96)
+                        }
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: Space.xxs) {
+                        Text(verdict.bannerTitle(for: model.mode))
+                            .font(.system(size: 26, weight: .bold))
+                        Text(ReportText.summaryLine(checks))
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                .accessibilityElement(children: .combine)
+                .id(verdict)
+                .transition(.flip(reduceMotion))
             }
-            .accessibilityElement(children: .combine)
+            .animation(Motion.spring(reduceMotion), value: verdict)
             Spacer(minLength: Space.xs)
             if model.phase == .running {
                 ProgressView().controlSize(.small)
@@ -80,7 +96,7 @@ struct ChecksView: View {
             return
         }
         for i in 0..<count {
-            withAnimation(Motion.standard(false)) { revealed = i + 1 }
+            withAnimation(Motion.spring(false)) { revealed = i + 1 }
             try await Task.sleep(for: .milliseconds(70))
         }
         revealed = .max
@@ -113,6 +129,10 @@ private struct CheckRow: View {
                     .font(.callout)
                 }
             }
+            Spacer(minLength: Space.xs)
+            // VerdictIcon already speaks the word.
+            Tag(text: check.verdict.word, tint: check.verdict.color)
+                .accessibilityHidden(true)
         }
         .padding(.vertical, Space.xxs)
     }
@@ -166,7 +186,7 @@ private struct EvidenceView: View {
             .font(.caption.monospaced())
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(Space.xs)
+            .padding(Space.s)
         return Group {
             if lines.count > 12 {
                 ScrollView { box }.frame(height: 180)
@@ -174,6 +194,6 @@ private struct EvidenceView: View {
                 box
             }
         }
-        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(.quaternary))
+        .terminal()
     }
 }

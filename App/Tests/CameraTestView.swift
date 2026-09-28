@@ -16,10 +16,14 @@ struct CameraTestView: View {
             instruction: "Check the picture is sharp and the green light next to the camera is on. Nothing is recorded or saved."
         ) {
             if let camera {
+                // The one lifted object: the picture in a dark bezel. The shadow is on the SwiftUI bezel, not on
+                // the AppKit preview, so it renders.
                 CameraPreview(session: camera.session)
                     .aspectRatio(16 / 9, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     .accessibilityLabel("Camera preview")
+                    .padding(Space.xs)
+                    .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(white: 0.08)).lifted())
             } else if let problem {
                 PermissionProblem(text: problem, pane: denied ? "Privacy_Camera" : nil)
             } else {

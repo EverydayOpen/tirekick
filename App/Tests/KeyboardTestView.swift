@@ -11,6 +11,7 @@ struct KeyboardTestView: View {
     @State private var ticked: Set<UInt16> = []
     @State private var down: Set<UInt16> = []
     @State private var monitor: Any?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let layoutRows = model.keyboardLayout.rows(touchBar: model.facts?.model?.touchBar ?? false)
@@ -34,7 +35,7 @@ struct KeyboardTestView: View {
                     .fixedSize()
                     Spacer()
                     Text(note)
-                        .monospacedDigit()
+                        .font(.system(.callout, design: .monospaced))
                         .foregroundStyle(.secondary)
                 }
                 GeometryReader { geometry in
@@ -46,9 +47,11 @@ struct KeyboardTestView: View {
         .onDisappear(perform: stopListening)
     }
 
+    /// The keys set into a recessed deck; the deck's corners follow the keys' (concentric).
     private func keyboard(_ rows: [[Key]], in size: CGSize) -> some View {
         let widest = CGFloat(rows.map { row in row.reduce(0) { $0 + $1.width } }.max() ?? 1)
-        let unit = min(size.width / widest, size.height / CGFloat(max(rows.count, 1)))
+        let inset = Space.xs
+        let unit = max(0, min((size.width - 2 * inset) / widest, (size.height - 2 * inset) / CGFloat(max(rows.count, 1))))
         return VStack(alignment: .leading, spacing: 0) {
             ForEach(rows.indices, id: \.self) { r in
                 HStack(spacing: 0) {
@@ -58,29 +61,43 @@ struct KeyboardTestView: View {
                 }
             }
         }
+        .padding(inset)
+        .recessedPanel(cornerRadius: unit * 0.15 + 2 + inset)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    /// Graphite key-caps like a Mac's, in both appearances. A registered key gets the hi-vis backlight: lime means
+    /// "registered", never "passed" (DESIGN.md §5.3). Held keys sink (MOTION.md §5.5); under Reduce Motion the
+    /// dimmer held fill is the only cue.
     private func keyView(_ key: Key, unit: CGFloat) -> some View {
         let isPressed = pressed.contains(key.code)
         let isTicked = !isPressed && ticked.contains(key.code)
+        let isHeld = down.contains(key.code)
+        let sinks = isHeld && !reduceMotion
         let shape = RoundedRectangle(cornerRadius: unit * 0.15, style: .continuous)
         return Button {
             if isTicked { ticked.remove(key.code) } else if !isPressed { ticked.insert(key.code) }
         } label: {
             Text(key.label)
-                .font(.system(size: max(9, unit * 0.24)))
+                .font(.system(size: max(9, unit * 0.24), weight: isPressed ? .semibold : .regular))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .padding(.horizontal, 2)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .foregroundStyle(isPressed ? Color.white : isTicked ? Color.accentColor : Color.primary)
-                .background(shape.fill(isPressed
-                    ? AnyShapeStyle(Color.accentColor.opacity(down.contains(key.code) ? 0.7 : 1))
-                    : AnyShapeStyle(.quaternary)))
-                // Ticked by hand: outlined, not filled, so it reads differently from a real press.
-                .overlay(shape.strokeBorder(Color.accentColor, lineWidth: isTicked ? 1.5 : 0))
+                .foregroundStyle(isPressed ? Color.black : isTicked ? Brand.hiVis : Color.white.opacity(0.85))
+                .background {
+                    ZStack {
+                        shape.fill(Color(white: 0.15))
+                        if isPressed { shape.fill(Brand.hiVis.opacity(isHeld ? 0.6 : 0.85)) }
+                    }
+                }
+                // Ticked by hand: outlined, not lit, so it reads differently from a real press.
+                .overlay(shape.strokeBorder(isTicked ? Brand.hiVis : Color.white.opacity(0.1), lineWidth: isTicked ? 1.5 : 0.5))
+                .background(shape.fill(Color.black.opacity(sinks ? 0 : 0.35)).offset(y: sinks ? 0 : 1.5))   // the key's side
                 .contentShape(shape)
+                .scaleEffect(sinks ? 0.92 : 1)
+                .offset(y: sinks ? 1 : 0)
+                .animation(Motion.pop, value: sinks)
         }
         .buttonStyle(.plain)
         .padding(2)

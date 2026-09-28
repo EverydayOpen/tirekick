@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>{{title}}</title>
 <meta name="description" content="{{description}}">
 <link rel="canonical" href="{{canonical}}">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0a09">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{name}}">
 <meta property="og:title" content="{{title}}">
@@ -23,19 +24,25 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="{{name}} changelog" href="/feed.xml">
 <link rel="stylesheet" href="/styles.css">
+<script src="/motion.js" defer></script>
 {{head}}
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M4.5 19.5h15"/></symbol>
+</svg>
 <header class="site-header">
-  <nav class="wrap nav" aria-label="Main">
+  <nav class="nav" aria-label="Main">
     <a class="brand" href="/"><img src="/favicon.png" width="28" height="28" alt=""><span>{{name}}</span></a>
     <ul class="nav-links">
       <li><a href="/#checks">What it checks</a></li>
+      <li><a href="/#tests">Tests</a></li>
       <li><a href="/#guides">Guides</a></li>
-      <li><a href="/#privacy">Privacy</a></li>
-      <li><a href="/support/">Support</a></li>
+      <li><a href="/#faq">FAQ</a></li>
     </ul>
+    <a class="button secondary small" href="https://github.com/{{releasesRepo}}">Source</a>
     <a class="button small" href="/download/">Download</a>
   </nav>
 </header>
@@ -77,6 +84,7 @@
         </ul>
       </div>
     </div>
+    <p class="official"><svg aria-hidden="true"><use href="#i-check"/></svg><span>The only official site is {{baseURL}}. Downloads come only from github.com/{{releasesRepo}}/releases.</span></p>
     <p class="fine">© {{year}} {{owner}}. {{name}} is free and open source under the MIT License.</p>
     <p class="fine">Apple, Mac, MacBook, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. {{name}} is not affiliated with or endorsed by Apple Inc.</p>
   </div>

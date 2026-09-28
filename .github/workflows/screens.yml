@@ -1,0 +1,92 @@
+# Window captures of every screen, light and dark, as the `screens` artifact (PNG), for design review and a later
+# "See it" gallery (docs/DESIGN.md §9). A Debug build opens each screen with `-demoScreen <name>` (App/Demo.swift):
+# fixture output from Tests/TirekickCoreTests/Fixtures, no command runs. Nothing is committed or published from here.
+name: screens
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ["App/**", "Sources/**", ".github/workflows/screens.yml"]
+
+permissions:
+  contents: read
+
+env:
+  APP: Tirekick
+  XCODEGEN: "2.46.0"   # checksum-pinned, same pin as ci.yml, beta.yml and release.yml: bump all four together
+  XCODEGEN_SHA256: 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  capture:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Select Xcode 26
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app && xcodebuild -version
+
+      - name: Generate project (XcodeGen, checksum-pinned)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/$XCODEGEN/xcodegen.zip"
+          echo "$XCODEGEN_SHA256  $RUNNER_TEMP/xcodegen.zip" | shasum -a 256 -c
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          test -d "$RUNNER_TEMP/xcodegen/share/xcodegen/SettingPresets"   # without them xcodegen only prints a warning
+          "$RUNNER_TEMP/xcodegen/bin/xcodegen" generate
+
+      # Demo mode exists only with DEBUG, set explicitly so a preset change can't turn every capture into Welcome.
+      # Ad-hoc signed like beta.yml, this runner's arch only.
+      - name: Build (Debug)
+        run: |
+          xcodebuild -project Tirekick.xcodeproj -scheme Tirekick -configuration Debug \
+            -destination 'platform=macOS,arch=arm64' -derivedDataPath build/dd \
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" DEVELOPMENT_TEAM="" ENABLE_HARDENED_RUNTIME=NO build
+
+      # `open` launches and activates the app, so windows are captured active. The window number comes from the
+      # window server by owner name (no Screen Recording needed for that); screencapture -l takes that window alone.
+      - name: Capture
+        run: |
+          cat > "$RUNNER_TEMP/window.swift" <<'EOF'
+          import CoreGraphics
+          CGWarpMouseCursorPosition(.zero)   // pointer out of the window: no hover state in a capture
+          let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+          if let window = windows.first(where: {
+              $0[kCGWindowOwnerName as String] as? String == CommandLine.arguments[1] && $0[kCGWindowLayer as String] as? Int == 0
+          }) {
+              print(window[kCGWindowNumber as String] as? Int ?? 0)
+          }
+          EOF
+          xcrun swiftc "$RUNNER_TEMP/window.swift" -o "$RUNNER_TEMP/window"
+          app="build/dd/Build/Products/Debug/$APP.app"
+          mkdir screens
+          for look in light dark; do
+            for screen in welcome checks checksWalkAway tests keyboard report; do
+              open -n "$app" --args -demoScreen "$screen" -demoAppearance "$look"
+              id=""
+              for _ in $(seq 60); do id=$("$RUNNER_TEMP/window" "$APP"); [ -n "$id" ] && break; sleep 0.5; done
+              if [ -z "$id" ]; then
+                screencapture -x screens/no-window-desktop.png
+                echo "::error::No $APP window for $screen ($look) within 30 s"
+                exit 1
+              fi
+              sleep 3   # entrance animations
+              screencapture -x -l"$id" "screens/$screen-$look.png"
+              pkill -x "$APP"
+              while pgrep -x "$APP" > /dev/null; do sleep 0.2; done
+            done
+          done
+          ls -l screens
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: screens
+          path: screens/
+          if-no-files-found: error

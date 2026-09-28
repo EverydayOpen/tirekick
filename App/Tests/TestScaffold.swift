@@ -3,7 +3,7 @@ import SwiftUI
 import TirekickCore
 
 /// Title, instruction, the test itself, then Skip / Problem / Pass. None is prominent or the default, so a stray
-/// Return can't pass a test; Esc skips.
+/// Return can't pass a test; Esc skips. Still (DESIGN.md §5.3): the feedback is the hardware. RootView paints the bay.
 struct TestScaffold<Content: View>: View {
     let test: HardwareTest
     let instruction: String
@@ -13,14 +13,23 @@ struct TestScaffold<Content: View>: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: Space.xxs) {
-                Text(test.title).font(.title2.weight(.semibold))
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: Space.s) {
+                // The tile's well, so the test reads as the key you just pressed.
+                HStack(spacing: Space.s) {
+                    Image(systemName: test.symbol)
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(Brand.hiVisInk)
+                        .well(.secondary, size: 36)
+                        .accessibilityHidden(true)
+                    Text(test.title)
+                        .font(.system(size: 22, weight: .bold))
+                        .accessibilityAddTraits(.isHeader)
+                }
                 Text(instruction)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding([.horizontal, .top], Space.xxl)
 
             content
@@ -28,7 +37,7 @@ struct TestScaffold<Content: View>: View {
                 .padding(.horizontal, Space.xxl)
                 .padding(.vertical, Space.l)
 
-            Divider()
+            // The main bottom bar's material capsule (DESIGN.md §5.1), without a hi-vis button.
             HStack {
                 Button("Skip") { model.finish(test, TestResult(.skipped)) }
                     .keyboardShortcut(.cancelAction)
@@ -38,7 +47,10 @@ struct TestScaffold<Content: View>: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
-            .padding(Space.l)
+            .padding(.vertical, Space.xs)
+            .padding(.horizontal, Space.s)
+            .background(.regularMaterial, in: Capsule())
+            .padding([.horizontal, .bottom], Space.l)
         }
     }
 }
@@ -59,5 +71,30 @@ struct PermissionProblem: View {
                 Button("Open Privacy Settings") { NSWorkspace.shared.open(url) }
             }
         }
+    }
+}
+
+extension View {
+    /// Sets the part under test (keys, pad, meter, speaker buttons) into the deck, like the Welcome tip's note well
+    /// (DESIGN.md §5.3): a dark recess in dark mode, the quaternary fill in light, shaded along the top edge.
+    func recessedPanel(cornerRadius: CGFloat = 14) -> some View {
+        modifier(RecessedPanel(cornerRadius: cornerRadius))
+    }
+}
+
+private struct RecessedPanel: ViewModifier {
+    let cornerRadius: CGFloat
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        // ShapeStyle.shadow(.inner) is macOS 13 (VERIFY on CI).
+        let fill = scheme == .dark
+            ? AnyShapeStyle(Color.black.opacity(0.25).shadow(.inner(color: .black.opacity(0.5), radius: 2, y: 1)))
+            : AnyShapeStyle(HierarchicalShapeStyle.quaternary.shadow(.inner(color: .black.opacity(0.12), radius: 2, y: 1)))
+        return content
+            .background(shape.fill(fill))
+            .overlay { if contrast == .increased { shape.strokeBorder(Color.primary.opacity(0.4), lineWidth: 1) } }
     }
 }

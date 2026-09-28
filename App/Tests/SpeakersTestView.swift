@@ -18,11 +18,13 @@ struct SpeakersTestView: View {
                 + (model.isAllInOne == false ? " Mac mini, Mac Studio and Mac Pro have one built-in speaker; just listen for crackle or buzz." : "")
         ) {
             VStack(spacing: Space.l) {
-                HStack(spacing: Space.m) {
+                HStack(spacing: Space.s) {
                     button("Play Left", .left)
                     button("Play Both", .both)
                     button("Play Right", .right)
                 }
+                .padding(Space.s)
+                .recessedPanel()
                 if let failure {
                     Text(failure).foregroundStyle(.secondary)
                 }
@@ -34,8 +36,14 @@ struct SpeakersTestView: View {
     private func button(_ title: String, _ channel: ToneGenerator.Channel) -> some View {
         let isPlaying = playing == channel
         return Button { toggle(channel) } label: {
-            Label(isPlaying ? "Stop" : title, systemImage: isPlaying ? "stop.fill" : "speaker.wave.2")
-                .frame(minWidth: 110)
+            Label {
+                Text(isPlaying ? "Stop" : title)
+            } icon: {
+                // Left's speaker faces left.
+                Image(systemName: isPlaying ? "stop.fill" : "speaker.wave.2")
+                    .scaleEffect(x: channel == .left && !isPlaying ? -1 : 1, y: 1)
+            }
+            .frame(minWidth: 110)
         }
         .controlSize(.large)
     }

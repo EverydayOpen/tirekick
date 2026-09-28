@@ -28,6 +28,10 @@ permissions:
 
 env:
   APP: Tirekick
+  # Checksum-pinned XcodeGen (GitHub's digest of xcodegen.zip), never an unpinned brew install. Same pin in ci.yml and
+  # beta.yml: bump all three together.
+  XCODEGEN: "2.46.0"
+  XCODEGEN_SHA256: 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806
 
 defaults:
   run:
@@ -39,7 +43,7 @@ jobs:
     environment: release
     timeout-minutes: 120   # ~15 min build + two notarizations of up to 45 min each
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -57,6 +61,15 @@ jobs:
           bash tools/doctor.sh --ci || { echo "::error::One base URL everywhere: fix the ERROR lines above (docs/GO_LIVE.md step 2)"; exit 1; }
           [ "$(jq -r .releasesRepo site/site.json)" = "$GITHUB_REPOSITORY" ] || { echo "::error::site/site.json releasesRepo != $GITHUB_REPOSITORY"; exit 1; }
           [[ "$APP" =~ ^[A-Za-z0-9._-]+$ ]] && [ "$(jq -r .dmgName site/site.json)" = "$APP.dmg" ] || { echo "::error::APP must be letters, digits, . _ - only (GitHub renames other asset names) and site/site.json dmgName must be $APP.dmg"; exit 1; }
+
+      # Before any step has a secret in its env. Layout per XcodeGen's scripts/archive.sh.
+      - name: Generate project (XcodeGen, checksum-pinned)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/$XCODEGEN/xcodegen.zip"
+          echo "$XCODEGEN_SHA256  $RUNNER_TEMP/xcodegen.zip" | shasum -a 256 -c
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          test -d "$RUNNER_TEMP/xcodegen/share/xcodegen/SettingPresets"   # without them xcodegen only prints a warning
+          "$RUNNER_TEMP/xcodegen/bin/xcodegen" generate
 
       - name: Select Xcode 26
         run: |
@@ -96,8 +109,6 @@ jobs:
         env:
           TEAM_ID: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
-          brew install xcodegen
-          xcodegen generate
           plutil -replace teamID -string "$TEAM_ID" ExportOptions.plist
           xcodebuild -project "$APP.xcodeproj" -scheme "$APP" -configuration Release \
             -destination 'generic/platform=macOS' -archivePath "build/$APP.xcarchive" \
@@ -138,7 +149,7 @@ jobs:
       - name: Zip the signed app (notarization upload + Intel smoke test)
         run: ditto -c -k --keepParent "build/export/$APP.app" "build/$APP.zip"
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: app
           path: build/${{ env.APP }}.zip
@@ -174,7 +185,7 @@ jobs:
           spctl -vvv --assess --type open --context context:primary-signature "$DMG"
           echo "DMG=$DMG" >> "$GITHUB_ENV"
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dmg
           path: ${{ env.DMG }}
@@ -188,7 +199,7 @@ jobs:
     runs-on: macos-15-intel
     timeout-minutes: 15
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: app
           path: build
@@ -215,17 +226,18 @@ jobs:
       contents: write   # gh release create/upload
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dmg
           path: build
 
       # Created as a draft and published after the uploads, so "latest" never points at a release without its DMG.
-      # Re-runnable: an existing release is reused and its assets replaced (--clobber).
+      # Re-runnable: a draft is reused and its assets replaced (--clobber). A published release is left alone: with
+      # immutable releases its assets are final.
       - name: GitHub Release (notes from CHANGELOG.md)
         env:
           GH_TOKEN: ${{ github.token }}
@@ -234,7 +246,8 @@ jobs:
           DMG="build/$APP-$VERSION.dmg"
           python3 tools/changelog.py notes "$VERSION" --format md > build/notes.md
           mkdir -p build/latest && cp "$DMG" "build/latest/$APP.dmg"
-          gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
-            || gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --draft --verify-tag --title "$APP $VERSION" --notes-file build/notes.md
+          STATE=$(gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null || true)
+          [ "$STATE" != false ] || { echo "$GITHUB_REF_NAME is already published"; exit 0; }
+          [ -n "$STATE" ] || gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --draft --verify-tag --title "$APP $VERSION" --notes-file build/notes.md
           gh release upload "$GITHUB_REF_NAME" "$DMG" "build/latest/$APP.dmg" -R "$GITHUB_REPOSITORY" --clobber
           gh release edit "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --draft=false

@@ -12,6 +12,10 @@ struct TirekickApp: App {
                 .environmentObject(model)
                 .frame(width: 720, height: 560)
         }
+        // The bay runs under the traffic lights and StepBar sits level with them (DESIGN.md §5.1). The window keeps
+        // its "Tirekick" title for the Window menu, Mission Control and VoiceOver. VERIFY on a Mac: it still drags
+        // from the top strip; if not, drop this line and RootView's ignoresSafeArea.
+        .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
         .commands {
             CommandGroup(replacing: .newItem) {}

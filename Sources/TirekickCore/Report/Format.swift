@@ -68,14 +68,19 @@ public enum Redact {
     }
 
     /// Terminal prompts and sudo refusals name the user and the Mac. The prompt becomes "%", the command stays:
-    /// zsh "jane@Janes-MacBook ~ % …", bash "Janes-MacBook:~ jane$ …", either after a "(base) " env prefix.
-    /// Indented lines are output, never a prompt (`OrganizationEmail = "it@acme.com";`).
+    /// zsh "jane@Janes-MacBook ~ % …", bash "Janes-MacBook:~ jane$ …", either after a "(base) " env prefix, or any
+    /// prompt before `profiles`. Indented lines are output, never a prompt (`OrganizationEmail = "it@acme.com";`).
     static func prompts(_ text: String) -> String {
         text.split(separator: "\n", omittingEmptySubsequences: false).map { line -> String in
             if line.contains("sudoers") || line.contains("may not run sudo") { return "(sudo refused: this account isn't an administrator)" }
             if let sudo = line.range(of: "sudo ") { return "% " + line[sudo.lowerBound...] }
-            if let prompt = line.range(of: #"^(\(\S+\) )?(\S+@\S+.*?[%$#]|[^\s:@]+:.*? \S+[$#])( |$)"#, options: .regularExpression) {
+            // A prompt and the command fit in 256 characters; the bound stops a long pasted line from backtracking.
+            if let prompt = line.prefix(256).range(of: #"^(\(\S+\) )?([^\s@]+@\S.*?[%$#]|[^\s:@]+:.*? \S+[$#])( |$)"#, options: .regularExpression) {
                 return "% " + line[prompt.upperBound...]
+            }
+            // fish ("jane@Janes-MacBook ~>") and Powerlevel10k ("❯") prompts end in neither % nor $: cut at the command.
+            if line.first?.isWhitespace == false, let cmd = line.range(of: #"(/usr/bin/)?profiles "#, options: .regularExpression) {
+                return "% " + line[cmd.lowerBound...]
             }
             return String(line)
         }.joined(separator: "\n")

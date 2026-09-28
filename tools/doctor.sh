@@ -50,6 +50,22 @@ if [ -z "$CI_MODE" ]; then
     if [ -z "$BASE" ]; then todo "the live site can't be checked until the base URL is set (docs/GO_LIVE.md step 2)"
     elif curl -fsS --max-time 10 -o /dev/null "$BASE/" 2>/dev/null; then ok "$BASE/ is live"
     else todo "$BASE/ doesn't load: push main so site.yml creates gh-pages, then enable Pages (Settings › Pages › Deploy from a branch › gh-pages / root) (docs/GO_LIVE.md step 2)"; fi
+    if gh repo view --json name > /dev/null 2>&1; then
+        # Admin-only repo settings (docs/RELEASING.md step 4). on PATH JQ: the API's answer is exactly true.
+        on() { [ "$(gh api "repos/{owner}/{repo}/$1" --jq "$2" 2>/dev/null)" = true ]; }
+        on environments/release/deployment-branch-policies '[.branch_policies[] | .type + " " + .name] == ["tag v*"]' \
+            && on environments/release 'any(.protection_rules[]; .type == "required_reviewers")' \
+            && ok "GitHub env release: v* tags only, required reviewer" \
+            || todo "GitHub env release: needs Selected tag v* and a required reviewer, before any secret goes in (docs/RELEASING.md step 4)"
+        on rules/branches/main 'map(.type) | contains(["deletion", "non_fast_forward"])' && ok "GitHub: main can't be force-pushed or deleted" \
+            || todo "GitHub: add a branch ruleset on main that blocks force pushes and deletion (docs/RELEASING.md step 4)"
+        on immutable-releases .enabled && ok "GitHub: immutable releases on" \
+            || todo "GitHub: turn on immutable releases (docs/RELEASING.md step 4)"
+        on private-vulnerability-reporting .enabled && ok "GitHub: private vulnerability reporting on" \
+            || todo "GitHub: turn on private vulnerability reporting, SECURITY.md sends reports there (docs/RELEASING.md step 4)"
+        on code-scanning/default-setup '.state == "configured"' && ok "GitHub: CodeQL default setup on" \
+            || todo "GitHub: turn on CodeQL default setup (docs/RELEASING.md step 4)"
+    fi
     if SECRETS=$(gh secret list --env release 2>/dev/null); then
         for s in DEVELOPER_ID_P12_BASE64 DEVELOPER_ID_P12_PASSWORD KEYCHAIN_PASSWORD DEVELOPMENT_TEAM ASC_KEY_P8_BASE64 \
                  ASC_KEY_ID ASC_ISSUER_ID; do
@@ -57,7 +73,7 @@ if [ -z "$CI_MODE" ]; then
                 || todo "GitHub env release: add secret $s (docs/RELEASING.md step 4)"
         done
     else
-        todo "GitHub secrets not checked (needs gh, gh auth login and a GitHub remote); see docs/RELEASING.md step 4"
+        todo "GitHub secrets not checked (needs gh, gh auth login, a GitHub remote and the release environment); see docs/RELEASING.md step 4"
     fi
 fi
 

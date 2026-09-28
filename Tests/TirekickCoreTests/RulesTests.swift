@@ -102,7 +102,7 @@ final class RulesTests: XCTestCase {
         let noRecord = try XCTUnwrap(run("Device Enrollment configuration:\n(null)\n"))
         XCTAssertEqual(noRecord.verdict, .check)
         XCTAssertEqual(noRecord.detail, "Terminal said: “(null)” Run the command exactly as copied, including sudo, type this Mac's administrator password, make sure the Mac is online, then paste the whole result.")
-        XCTAssertEqual(run(fixture(F.abmNotDEP))?.detail, "Apple reports no organization has set this Mac to enroll in its device management.")
+        XCTAssertEqual(run(fixture(F.abmNotDEP))?.detail, "Terminal reported that no organization has set this Mac to enroll in its device management. On a Mac you don't control, Terminal output can be faked.")
 
         // Copy Command leaves the command on the clipboard: pasting it back isn't "offline".
         let commandOnly = try XCTUnwrap(run("jane@Janes-MacBook-Pro ~ % sudo /usr/bin/profiles show -type enrollment\nPassword:\n"))

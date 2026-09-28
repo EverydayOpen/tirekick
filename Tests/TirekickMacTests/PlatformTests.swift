@@ -21,6 +21,14 @@ final class PlatformTests: XCTestCase {
         XCTAssertLessThan(Date().timeIntervalSince(start), 10)
     }
 
+    /// The backgrounded sleep inherits the pipe, so killing the direct child never closes it.
+    func testTimeoutReturnsWhileAHelperHoldsThePipe() async throws {
+        let start = Date()
+        let result = try await ProcessRunner.run("/bin/sh", ["-c", "sleep 30 & sleep 30"], timeout: 0.5)
+        XCTAssertTrue(result.timedOut)
+        XCTAssertLessThan(Date().timeIntervalSince(start), 10)
+    }
+
     func testLargeOutputDrainsAndCaps() async throws {
         let full = try await ProcessRunner.run("/usr/bin/seq", ["1", "200000"]) // ~1.3 MB, far past the 64 KB pipe buffer
         XCTAssertEqual(full.status, 0)

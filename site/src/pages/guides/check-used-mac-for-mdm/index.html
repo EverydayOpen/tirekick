@@ -1,6 +1,6 @@
 <!--meta {"title": "How to check a used Mac for MDM and company assignment before you buy", "description": "Two Terminal commands tell you whether a used Mac is managed by an organization, or assigned to a company that will take it back after it's erased. What each result means, and why an MDM bypass doesn't fix it."}-->
 <article class="wrap narrow prose guide">
-  <p class="eyebrow">Guide · Updated September 2026 · macOS 13 to 27</p>
+  <p class="eyebrow"><b>G1</b> · Guide · Updated September 2026 · macOS 13 to 27</p>
   <h1>How to check a used Mac for MDM and company assignment before you buy</h1>
 
   <div class="summary">
@@ -8,7 +8,7 @@
     <p>A company can hold on to a Mac in two ways, and you need to check both before you pay:</p>
     <ol>
       <li><b>Managed now.</b> Open Terminal and run <code>profiles status -type enrollment</code>. Both lines should end in <code>No</code>.</li>
-      <li><b>Assigned to the company</b>, even when nothing is managed right now. Run <code>sudo profiles show -type enrollment</code> with the Mac online. “Client is not DEP enabled.” means Apple reports no organization has set it to enroll in its device management. An <code>OrganizationName</code> means one has.</li>
+      <li><b>Assigned to the company</b>, even when nothing is managed right now. Run <code>sudo profiles show -type enrollment</code> with the Mac online. “Client is not DEP enabled.” means Apple reports no organization has set it to enroll in its device management. On a Mac you don't control, Terminal output can be faked, so run it from a local account you created yourself. An <code>OrganizationName</code> means one has.</li>
     </ol>
     <p>If either one names an organization, walk away unless it's your employer's Mac. Only that organization can release it, and no “MDM bypass” changes that.</p>
   </div>
@@ -39,7 +39,7 @@
   <pre><code>sudo profiles show -type enrollment</code></pre>
   <p>Type the Mac's administrator password when asked (it doesn't show as you type).</p>
   <ul>
-    <li><code>Error fetching Device Enrollment configuration: Client is not DEP enabled.</code> Apple reports no organization has set this Mac to enroll in its device management. Good.</li>
+    <li><code>Error fetching Device Enrollment configuration: Client is not DEP enabled.</code> Apple reports no organization has set this Mac to enroll in its device management. Good. On a Mac you don't control, Terminal output can be faked, so run it from a local account you created yourself.</li>
     <li><code>Device Enrollment configuration:</code> followed by a block with <code>OrganizationName = …</code> The Mac is assigned to that organization. Walk away, and tell the seller who it belongs to.</li>
     <li>An error that mentions the <b>cloud configuration server</b>, or anything else: the check didn't work, usually because the Mac is offline. Connect and try again. Don't read an error as “not assigned”.</li>
   </ul>
