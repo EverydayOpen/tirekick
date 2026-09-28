@@ -1,0 +1,60 @@
+{
+  "SPStorageDataType" : [
+    {
+      "_name" : "Macintosh HD - Data",
+      "bsd_name" : "disk1s1",
+      "file_system" : "APFS",
+      "free_space_in_bytes" : 116865609728,
+      "ignore_ownership" : "no",
+      "mount_point" : "/System/Volumes/Data",
+      "physical_drive" : {
+        "device_name" : "VEERTU ANKA",
+        "is_internal_disk" : "yes",
+        "media_name" : "AppleAPFSMedia",
+        "medium_type" : "rotational",
+        "partition_map_type" : "unknown_partition_map_type",
+        "protocol" : "SATA"
+      },
+      "size_in_bytes" : 348622118912,
+      "volume_uuid" : "563A508F-BDCD-3143-B445-B195B273307C",
+      "writable" : "yes"
+    },
+    {
+      "_name" : "Creedence11M6270.SECUREPKITRUSTSTOREASSETS_SECUREPKITRUSTSTORE_Cryptex",
+      "bsd_name" : "disk3s1",
+      "file_system" : "Case-sensitive APFS",
+      "free_space_in_bytes" : 3149824,
+      "ignore_ownership" : "no",
+      "mount_point" : "/System/Library/AssetsV2/com_apple_MobileAsset_PKITrustStore/purpose_auto/6dd55b0d06633a00de6f57ccb910a66a5ba2409a.asset/.AssetData",
+      "physical_drive" : {
+        "device_name" : "Disk Image",
+        "is_internal_disk" : "no",
+        "media_name" : "AppleAPFSMedia",
+        "partition_map_type" : "unknown_partition_map_type",
+        "protocol" : "Disk Image"
+      },
+      "size_in_bytes" : 4194304,
+      "volume_uuid" : "A4B97E21-47AA-4E5E-A5D5-1F7563C37536",
+      "writable" : "no"
+    },
+    {
+      "_name" : "Macintosh HD",
+      "bsd_name" : "disk1s5s1",
+      "file_system" : "APFS",
+      "free_space_in_bytes" : 116865609728,
+      "ignore_ownership" : "no",
+      "mount_point" : "/",
+      "physical_drive" : {
+        "device_name" : "VEERTU ANKA",
+        "is_internal_disk" : "yes",
+        "media_name" : "AppleAPFSMedia",
+        "medium_type" : "rotational",
+        "partition_map_type" : "unknown_partition_map_type",
+        "protocol" : "SATA"
+      },
+      "size_in_bytes" : 348622118912,
+      "volume_uuid" : "336D4CE8-3D32-4FEF-8A64-CC268F4E0EA8",
+      "writable" : "no"
+    }
+  ]
+}

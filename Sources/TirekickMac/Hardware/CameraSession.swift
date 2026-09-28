@@ -1,4 +1,5 @@
-import AVFoundation
+// AVCaptureSession isn't Sendable, but Apple documents start/stopRunning as safe off the main thread.
+@preconcurrency import AVFoundation
 
 /// The built-in camera's live feed for the camera test. Nothing is recorded or saved.
 @MainActor public final class CameraSession {

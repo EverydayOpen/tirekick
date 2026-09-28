@@ -560,3 +560,16 @@ names exactly; if you're unsure an API exists on macOS 13, don't use it, or put 
 - Top-row/Globe keys in a local monitor; keyboard type detection; the display test window on notched screens (app, on
   a tester's Mac).
 - SF Symbols availability for every symbol used (app).
+
+## Verified on GitHub macOS runners (2026-09-28, fixtures.yml run 36430339928)
+
+- `profiles status -type enrollment` and `fdesetup status` run without root (identical output as `nobody`) on macOS 15 and 26:
+  the lock checks need no redesign.
+- Without root, `profiles show -type enrollment` prints "Must be running as root"; with `sudo` on a Mac that isn't
+  in ABM it prints "Error fetching Device Enrollment configuration: Client is not DEP enabled." (exit 1).
+- `number_processors` can be an Int on Apple silicon (the VM reports `3`), not only the `"proc 8:4:4"` string.
+- With no battery, `ioreg -r -c AppleSmartBattery -a` prints nothing (no empty array).
+- `sysctl` skips unknown names silently (exit 0); Intel reports `hw.nperflevels: 1` ("Standard"), so core groups are
+  kept only with 2 or more perf levels.
+- Intel Macs without a T2 have no `activation_lock_status` key: shown as unknown, never as clean.
+- Unknown identifiers that aren't `MacN,M` (e.g. `VirtualMac2,1`) read "Not in Tirekick's list of Macs".

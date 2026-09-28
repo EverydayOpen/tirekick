@@ -15,8 +15,9 @@ public enum Parsers {
         // "Apple " not "Apple M": the MacBook Neo has an A18 Pro. Under Rosetta neither string says Apple,
         // so fall back to the catalog (only Apple-silicon Macs run the newest macOS).
         let appleChip = [chipType, brand].contains { $0?.hasPrefix("Apple ") == true }
+        // Intel and virtual Macs report one level ("Standard"): that's no split, so coreGroups stays empty.
         let levels = int(sys["hw.nperflevels"]) ?? 0
-        let groups = (0..<levels).compactMap { n -> CoreGroup? in
+        let groups: [CoreGroup] = levels < 2 ? [] : (0..<levels).compactMap { n -> CoreGroup? in
             guard let name = sys["hw.perflevel\(n).name"], let count = int(sys["hw.perflevel\(n).physicalcpu"]) else { return nil }
             return CoreGroup(name: name, count: count)
         }
@@ -122,7 +123,9 @@ public enum Parsers {
     }
 
     static let abmHeader = "Device Enrollment configuration:"
-    static let abmErrors = ["Error fetching Device Enrollment configuration:", "sudo:", "profiles:", "(sudo refused", "Sorry, try again"]
+    /// "Must be running as root" is profiles without sudo (GitHub runners, macOS 15 and 26).
+    static let abmErrors = ["Error fetching Device Enrollment configuration:", "sudo:", "profiles:", "(sudo refused", "Sorry, try again",
+                            "Must be running as root"]
 
     /// The `.couldNotCheck` reason for a paste that isn't the command's output. The App doesn't store such a paste.
     public static let unrecognizedPaste = "That doesn't look like the command's output. Copy everything Terminal printed after the command."

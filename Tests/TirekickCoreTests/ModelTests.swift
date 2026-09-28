@@ -45,15 +45,15 @@ final class ModelTests: XCTestCase {
         let dir = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Fixtures")
         let names = try FileManager.default.contentsOfDirectory(atPath: dir.path)
         var checked = 0
-        for name in names {
+        // The runner-* folders hold raw .stdout files; RunnerFixtureTests parses those.
+        for name in names where name.hasSuffix(".json") || name.hasSuffix(".plist") {
             let data = try Data(contentsOf: dir.appendingPathComponent(name))
             if name.hasSuffix(".json") {
                 XCTAssertNoThrow(try JSONSerialization.jsonObject(with: data), name)
-                checked += 1
-            } else if name.hasSuffix(".plist") {
+            } else {
                 XCTAssertNoThrow(try PropertyListSerialization.propertyList(from: data, options: [], format: nil), name)
-                checked += 1
             }
+            checked += 1
         }
         XCTAssertGreaterThanOrEqual(checked, 10)
     }

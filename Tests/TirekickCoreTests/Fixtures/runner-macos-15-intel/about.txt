@@ -1,0 +1,5 @@
+ProductName:		macOS
+ProductVersion:		15.7.9
+BuildVersion:		24G830
+x86_64
+runner image: macos15 20260824.0482.1

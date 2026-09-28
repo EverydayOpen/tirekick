@@ -197,7 +197,9 @@ final class RulesTests: XCTestCase {
         XCTAssertEqual(unknown.verdict, .unknown)
         XCTAssertEqual(unknown.title, "Newer than this version of Tirekick")
         XCTAssertEqual(unknown.evidence.first?.rawOutput, "Mac99,1 → not in the list")
-        XCTAssertEqual(check(.macOSUpdates, facts(specs("VirtualMac2,1")))?.verdict, .unknown)
+        let vm = try XCTUnwrap(check(.macOSUpdates, facts(specs("VirtualMac2,1"))))
+        XCTAssertEqual(vm.verdict, .unknown)
+        XCTAssertEqual(vm.title, "Not in Tirekick's list of Macs")
         // A 2015 Mac on macOS 13+ runs a patched macOS: a known fact, not "newer".
         let patched = try XCTUnwrap(check(.macOSUpdates, facts(specs("MacBookPro11,4"))))
         XCTAssertEqual(patched.verdict, .check)

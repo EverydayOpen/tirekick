@@ -3,8 +3,31 @@
 Real command output published by other people, used by the Core parser and rule tests. Collected 2026-09-28.
 Serial numbers, UUIDs and the battery serial are masked (`X`); nothing else was changed unless the table says so.
 
-The CI fixture-dump job (docs/BUILD_PLAN.md §2.4) adds output from the GitHub arm64 and Intel runners, and beta
-testers' "Copy raw data" adds real Macs. Until then, everything marked **VERIFY** has no verbatim sample here.
+The `runner-*` folders come from the CI fixture-dump job (docs/BUILD_PLAN.md §2.4, below); beta testers' "Copy raw
+data" adds real Macs. Until then, everything marked **VERIFY** has no verbatim sample here.
+
+## GitHub runners (`runner-macos-26/`, `runner-macos-15-intel/`)
+
+Captured by `.github/workflows/fixtures.yml` on GitHub-hosted runners, run 36430339928, 2026-09-28. These are virtual
+machines, so no battery/NVMe/real serials. Each command has `<name>.stdout`, `.stderr` and `.status` (exit code)
+exactly as the workflow wrote them (it had already replaced serials and UUIDs with `XXXX`); `about.txt` is `sw_vers`,
+`uname -m` and the runner image. Only the empty `MobileMeAccounts_exists.stdout`/`.stderr` were left out.
+`RunnerFixtureTests` builds RawData from them the way `Collector.collectAll()` does.
+
+| Folder | Runner | Mac | Worth knowing |
+|---|---|---|---|
+| `runner-macos-26` | `macos-26`, image macos26 20260907.0351.1 | macOS 26.6.2 (25G83), arm64 VM: `VirtualMac2,1`, "Apple Virtual Machine 1", "Apple M1 (Virtual)" | `activation_lock_status` is `activation_lock_disabled`; `number_processors` is the Int `3`; SPDisplaysDataType and SPNVMeDataType are empty lists; SPStorageDataType lists Cryptex disk images (`is_internal_disk: "no"`) around the startup volume, which has no `device_name` or `smart_status` |
+| `runner-macos-15-intel` | `macos-15-intel`, image macos15 20260824.0482.1 | macOS 15.7.9 (24G830), x86_64 VM reporting `Macmini6,2`, "Mac mini", i7-8700B | no `activation_lock_status` key; `cpu_type: "Unknown"`; drive "VEERTU ANKA", rotational, SATA, no `smart_status` |
+
+What they settle (on these VMs, both macOS versions):
+
+- `profiles status -type enrollment` and `fdesetup status` need no root: `sudo -u nobody` prints the same, exit 0.
+- `sudo profiles show -type enrollment` on a Mac not in Apple Business prints `Error fetching Device Enrollment
+  configuration: Client is not DEP enabled.` on stderr, exit 1. Without root it prints `Must be running as root`, exit 1.
+- `ioreg -r -c AppleSmartBattery -a` with no battery prints nothing (not an empty array), exit 0.
+- `sysctl` skips names it doesn't know (`hw.perflevel1.*` here) silently: no stderr, exit 0. Intel and VMs report
+  `hw.nperflevels: 1` with `hw.perflevel0.name: Standard`.
+- `~/Library/Preferences/MobileMeAccounts.plist` didn't exist on either runner (`test -f`, exit 1).
 
 | File | Command | Mac | Provenance | Source |
 |---|---|---|---|---|
@@ -27,13 +50,13 @@ testers' "Copy raw data" adds real Macs. Until then, everything marked **VERIFY*
 | `profiles_show_enrollment_error34006.txt` | same | Mac that couldn't reach Apple | verbatim | https://nwstrauss.com/posts/2020-08-11-mitigating-mac-enrollment-failures/ |
 | `fdesetup_status_on.txt`, `fdesetup_status_off.txt` | `fdesetup status` | — | the two documented one-line outputs | https://apple.stackexchange.com/questions/359544/how-to-confirm-if-filevault-encryption-has-fully-completed |
 
-## Not found yet (VERIFY with the CI dump)
+## Not found yet (VERIFY with real Macs)
 
-- **`system_profiler -json SPNVMeDataType`**: no verbatim sample found. Key names (`_items`, `device_model`, `size_in_bytes`
+- **`system_profiler -json SPNVMeDataType`**: no verbatim sample with a drive (both runners print an empty list). Key names (`_items`, `device_model`, `size_in_bytes`
   as an integer, `smart_status`, `spnvme_trim_support`, `volumes`) come from gopsutil's struct that parses the real output:
   https://github.com/shirou/gopsutil/blob/master/disk/disk_darwin.go
 - A full `SPPowerDataType` with the `_name: "spbattery_information"` item: seen only as `plutil -p` output
   (https://zenn.dev/ssk_ats/articles/ce657644540ee7), which confirms `sppower_battery_charge_info` and
   `sppower_battery_health_info` { cycle count 38, "Good", "88%" } sit in the same item.
-- SMART `"Failing"`, battery health strings other than "Good"/"Check Battery", `activation_lock_status` on an Intel Mac
-  without a T2 chip, `profiles show` without sudo, `profiles` output of "(null)".
+- SMART `"Failing"`, battery health strings other than "Good"/"Check Battery", `activation_lock_status` on a real Intel Mac
+  without a T2 chip (the Intel runner VM has no key), `profiles` output of "(null)".

@@ -1,0 +1,21 @@
+{
+  "SPHardwareDataType" : [
+    {
+      "_name" : "hardware_overview",
+      "boot_rom_version" : "1.00",
+      "cpu_type" : "Unknown",
+      "current_processor_speed" : "3.19 GHz",
+      "l2_cache_core" : "256 KB",
+      "l3_cache" : "12 MB",
+      "machine_model" : "Macmini6,2",
+      "machine_name" : "Mac mini",
+      "number_processors" : 4,
+      "os_loader_version" : "583~2317",
+      "packages" : 1,
+      "physical_memory" : "14 GB",
+      "platform_UUID" : "XXXX",
+      "provisioning_UDID" : "XXXX",
+      "serial_number" : "XXXX"
+    }
+  ]
+}

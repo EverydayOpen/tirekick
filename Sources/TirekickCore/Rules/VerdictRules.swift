@@ -165,8 +165,10 @@ public enum VerdictRules {
                              detail: "It's most likely running a patched macOS, so it gets no official updates from Apple.",
                              evidence: missing)
             }
-            return Check(id: .macOSUpdates, verdict: .unknown, title: "Newer than this version of Tirekick",
-                         detail: "Tirekick doesn't know \(specs.modelIdentifier) yet, so it can't tell how long it gets updates." + running,
+            // Only a "MacN,M" identifier can be a Mac released after this catalog; anything else (VirtualMac2,1) isn't "newer".
+            let newer = specs.modelIdentifier.range(of: #"^Mac\d+,\d+$"#, options: .regularExpression) != nil
+            return Check(id: .macOSUpdates, verdict: .unknown, title: newer ? "Newer than this version of Tirekick" : "Not in Tirekick's list of Macs",
+                         detail: "Tirekick doesn't know \(specs.modelIdentifier), so it can't tell how long it gets updates." + running,
                          evidence: missing)
         }
         let e = builtIn("\(model.identifier) → \(model.name), last macOS: \(model.lastMacOS.map(String.init) ?? "current")")
