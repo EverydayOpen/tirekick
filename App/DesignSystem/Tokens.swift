@@ -103,8 +103,7 @@ struct Bay: View {
         ZStack {
             Color(nsColor: .windowBackgroundColor)
             if contrast != .increased {
-                LinearGradient(colors: dark ? [Color(red: 0.075, green: 0.075, blue: 0.07), Color(red: 0.04, green: 0.04, blue: 0.035)]
-                                            : [Color(white: 0.97), Color(white: 0.91)],
+                LinearGradient(colors: [dark ? Color(red: 0.075, green: 0.075, blue: 0.07) : Color(white: 0.97), Bay.floor(dark)],
                                startPoint: .top, endPoint: .bottom)
                 RadialGradient(colors: [Color.white.opacity(dark ? 0.07 : 0.6), .clear], center: .top, startRadius: 0, endRadius: 420)
             }
@@ -113,9 +112,20 @@ struct Bay: View {
         .allowsHitTesting(false)
         .accessibilityHidden(true)
     }
+
+    /// The bottom of the bay's gradient; floatingBar fades to it.
+    static func floor(_ dark: Bool) -> Color {
+        dark ? Color(red: 0.04, green: 0.04, blue: 0.035) : Color(white: 0.91)
+    }
 }
 
 extension View {
+    /// The floating bottom bar (RootView's and TestScaffold's): a thick material capsule with a rim, on a fade to
+    /// the bay's floor, so scrolled content never shows beneath or through it.
+    func floatingBar() -> some View {
+        modifier(FloatingBar())
+    }
+
     /// A symbol in a recessed, tinted squircle: the site's icon well. Pure fills, so ImageRenderer-safe.
     func well(_ tint: Color, size: CGFloat = 44) -> some View {
         modifier(Well(tint: tint, size: size))
@@ -134,6 +144,28 @@ extension View {
         let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
         return background(Color.primary.opacity(0.04), in: shape)
             .overlay(shape.strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
+    }
+}
+
+private struct FloatingBar: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    func body(content: Content) -> some View {
+        // Increase Contrast has no bay gradient, only the window background.
+        let fadeTo = contrast == .increased ? Color(nsColor: .windowBackgroundColor) : Bay.floor(scheme == .dark)
+        return content
+            .padding(.vertical, Space.xs)
+            .padding(.horizontal, Space.s)
+            .background(.thickMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5))
+            .padding([.horizontal, .bottom], Space.l)
+            .background {
+                // Starts a gap above the capsule and is opaque from its middle down, so nothing peeks out below it.
+                LinearGradient(colors: [.clear, fadeTo, fadeTo], startPoint: .top, endPoint: .bottom)
+                    .padding(.top, -Space.l)
+                    .allowsHitTesting(false)
+            }
     }
 }
 
@@ -245,7 +277,7 @@ struct HiVisButtonStyle: ButtonStyle {
     }
 }
 
-/// Welcome choices and Tests tiles: a key-cap. Raised fill, lit top edge, hairline; sinks 1pt when pressed and
+/// Welcome choices and Tests tiles: a key-cap. Raised fill, a rim lit on top and dark below; sinks 1pt when pressed and
 /// turns toward the pointer. Replaces MOTION §5.1's TileButtonStyle with the same tilt, press and bounce.
 struct KeyCapStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View { Cap(configuration: configuration) }
@@ -268,11 +300,13 @@ struct KeyCapStyle: ButtonStyle {
                     if contrast == .increased {
                         shape.fill(.quaternary)
                     } else {
-                        shape.fill(Color(nsColor: .controlBackgroundColor))
-                            .overlay(shape.fill(LinearGradient(colors: [Color.white.opacity(dark ? 0.08 : 0), Color.black.opacity(dark ? 0 : 0.035)], startPoint: .top, endPoint: .bottom)))
-                            .overlay(shape.strokeBorder(Color(nsColor: .separatorColor), lineWidth: 0.5))
-                            .shadow(color: .black.opacity(dark ? 0.6 : 0.12), radius: 0, y: down ? 0 : 2)   // the key's side
-                            .shadow(color: .black.opacity(dark ? 0.4 : 0.08), radius: 8, y: 4)
+                        // Dark lifts the cap off the bay (controlBackgroundColor is almost the bay's value there).
+                        shape.fill(dark ? Color(white: 0.17) : Color(nsColor: .controlBackgroundColor))
+                            .overlay(shape.fill(LinearGradient(colors: [Color.white.opacity(dark ? 0.10 : 0.6), Color.black.opacity(dark ? 0 : 0.035)], startPoint: .top, endPoint: .bottom)))
+                            // The rim: a lit top edge, a dark lower edge.
+                            .overlay(shape.strokeBorder(LinearGradient(colors: [Color.white.opacity(dark ? 0.22 : 1), Color.black.opacity(dark ? 0.7 : 0.14)], startPoint: .top, endPoint: .bottom), lineWidth: dark ? 1 : 0.5))
+                            .shadow(color: .black.opacity(dark ? 0.7 : 0.12), radius: 0, y: down ? 0 : 2)   // the key's side
+                            .shadow(color: .black.opacity(dark ? 0.5 : 0.08), radius: 8, y: 4)
                     }
                 }
                 .contentShape(shape)

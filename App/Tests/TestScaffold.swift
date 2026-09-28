@@ -37,7 +37,7 @@ struct TestScaffold<Content: View>: View {
                 .padding(.horizontal, Space.xxl)
                 .padding(.vertical, Space.l)
 
-            // The main bottom bar's material capsule (DESIGN.md §5.1), without a hi-vis button.
+            // The main bottom bar (DESIGN.md §5.1), without a hi-vis button.
             HStack {
                 Button("Skip") { model.finish(test, TestResult(.skipped)) }
                     .keyboardShortcut(.cancelAction)
@@ -47,10 +47,7 @@ struct TestScaffold<Content: View>: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
-            .padding(.vertical, Space.xs)
-            .padding(.horizontal, Space.s)
-            .background(.regularMaterial, in: Capsule())
-            .padding([.horizontal, .bottom], Space.l)
+            .floatingBar()
         }
     }
 }

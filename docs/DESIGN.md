@@ -352,7 +352,7 @@ checker's two-block contract. Print overrides on `html` (shared §2.4), so the m
   --button-hover: #b4e02a;
   --on-button: #0a0a09;               /* black label on lime */
   --line: #262622;                    /* hex so the checker can read it if a pair is ever added */
-  --header: rgb(12 12 11 / .6);
+  --header: rgb(12 12 11 / .78);
   --ink: 0 0 0;
   --ok: #32d74b; --warn: #ff9f0a; --bad: #ff453a;
   /* The world: an overhead key light, the lime spill and one lit horizon, only on stages. */
@@ -396,7 +396,7 @@ and red, always with a symbol and a word.
 ```css
 .eyebrow { font: 600 12px/1.2 var(--font-mono); letter-spacing: .06em; color: var(--text-2); }   /* sentence case */
 .eyebrow b { color: var(--accent); }                                                              /* "<b>01</b> · What goes wrong" */
-.ticks { height: 6px; margin: 10px 0 20px; background: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 10px);
+.ticks { height: 8px; margin: 10px 0 20px; background: repeating-linear-gradient(90deg, rgb(255 255 255 / .2) 0 1px, transparent 1px 10px);
   -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent); mask-image: linear-gradient(90deg, #000 40%, transparent); }
 ```
 

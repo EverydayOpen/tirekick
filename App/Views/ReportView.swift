@@ -11,39 +11,33 @@ struct ReportView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
 
+    // Mask serial, Copy and the Save buttons are in RootView's bottom bar.
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Space.l) {
-                    VStack(alignment: .leading, spacing: Space.xxs) {
-                        Text("Report card").font(.system(size: 26, weight: .bold))
-                        Text(model.mode == .buying
-                             ? "Save the picture for your records or to show the seller. The PDF adds every command's output."
-                             : "Share the picture with a listing. The PDF adds every command's output.")
-                            .foregroundStyle(.secondary)
-                    }
+        ScrollView {
+            VStack(alignment: .leading, spacing: Space.l) {
+                VStack(alignment: .leading, spacing: Space.xxs) {
+                    Text("Report card").font(.system(size: 26, weight: .bold))
+                    Text(model.mode == .buying
+                         ? "Save the picture for your records or to show the seller. The PDF adds every command's output."
+                         : "Share the picture with a listing. The PDF adds every command's output.")
+                        .foregroundStyle(.secondary)
+                }
 
-                    if let card = model.card { stage(card) }
+                if let card = model.card { stage(card) }
 
-                    VStack(alignment: .leading, spacing: Space.xs) {
-                        Text("What Tirekick can't tell you").font(.headline)
-                        ForEach(ReportText.cantTell, id: \.self) { item in
-                            Label {
-                                Text(item).fixedSize(horizontal: false, vertical: true)
-                            } icon: {
-                                Image(systemName: "questionmark.circle").foregroundStyle(.secondary)
-                            }
+                VStack(alignment: .leading, spacing: Space.xs) {
+                    Text("What Tirekick can't tell you").font(.headline)
+                    ForEach(ReportText.cantTell, id: \.self) { item in
+                        Label {
+                            Text(item).fixedSize(horizontal: false, vertical: true)
+                        } icon: {
+                            Image(systemName: "questionmark.circle").foregroundStyle(.secondary)
                         }
                     }
-                    .font(.callout)
                 }
-                .padding(Space.xxl)
+                .font(.callout)
             }
-
-            // Under the card, outside the scroll: a full card is taller than the window, so Save PNG stays in reach.
-            controls
-                .padding(.horizontal, Space.xxl)
-                .padding(.vertical, Space.s)
+            .padding(Space.xxl)
         }
         .background { keyLight }
     }
@@ -65,31 +59,13 @@ struct ReportView: View {
             }
             .onAppear { withAnimation(Motion.spring(reduceMotion).delay(0.1)) { dealt = true } }
             .frame(maxWidth: .infinity)
-            .padding(.top, Space.xl)
+            .padding(.top, Space.xxl)
             .padding(.bottom, Space.xxl)
+            // Light: darker than the bay, so the white card is the brightest thing on screen.
             .background(panel.fill(LinearGradient(colors: dark ? [Color(white: 0.17), Color(white: 0.10)]
-                                                               : [Color(white: 0.97), Color(white: 0.90)],
+                                                               : [Color(white: 0.90), Color(white: 0.84)],
                                                   startPoint: .top, endPoint: .bottom)))
             .overlay(panel.strokeBorder(Color(nsColor: .separatorColor), lineWidth: 0.5))
-    }
-
-    private var controls: some View {
-        HStack(spacing: Space.xs) {
-            Toggle("Mask serial", isOn: $model.maskSerial)
-            Spacer()
-            CopyButton { model.copyReport() }
-            Button("Save PDF…") {
-                if let report = model.report { Export.pdf(ReportText.full(report, maskSerial: model.maskSerial)) }
-            }
-            // The screen's one prominent button, trailing, where Continue sits on the other screens.
-            Button("Save PNG…") {
-                if let card = model.card { Export.png(card) }
-            }
-            .buttonStyle(HiVisButtonStyle())
-        }
-        .buttonStyle(.bordered)
-        .controlSize(.large)
-        .disabled(model.report == nil)
     }
 
     /// Bay with a brighter key light over the stage. Increase Contrast keeps Bay's plain window background.

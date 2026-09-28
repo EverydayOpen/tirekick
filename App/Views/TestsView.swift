@@ -13,14 +13,14 @@ struct TestsView: View {
                 Text("Each test takes under a minute and ends with Pass, Problem or Skip. They're all optional.")
                     .foregroundStyle(.secondary)
             }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 200), spacing: Space.m)], spacing: Space.m) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 200), spacing: Space.l)], spacing: Space.l) {
                 ForEach(HardwareTest.allCases, id: \.self) { test in
                     Button { model.openTest = test } label: { tile(test) }
                         .buttonStyle(KeyCapStyle())
                 }
             }
-            Spacer(minLength: 0)
         }
+        .frame(maxHeight: .infinity, alignment: .top)
         .padding(Space.xxl)
     }
 
@@ -28,7 +28,7 @@ struct TestsView: View {
     /// count) or "Not tested". Every tile has the same three rows, so the grid stays even.
     private func tile(_ test: HardwareTest) -> some View {
         let result = model.testResults[test]
-        return VStack(alignment: .leading, spacing: Space.s) {
+        return VStack(alignment: .leading, spacing: Space.m) {
             Image(systemName: test.symbol)
                 .font(.system(size: 20, weight: .medium))
                 .foregroundStyle(Brand.hiVisInk)

@@ -3,7 +3,6 @@ import TirekickCore
 
 struct WelcomeView: View {
     @EnvironmentObject private var model: AppModel
-    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         VStack(spacing: Space.l) {
@@ -59,7 +58,7 @@ struct WelcomeView: View {
         .buttonStyle(KeyCapStyle())
     }
 
-    /// A recessed note well under the choices.
+    /// A recessed note well under the choices, the keyboard deck's recess. Secondary text: the choices stay loudest.
     private var tip: some View {
         HStack(spacing: Space.s) {
             Image(systemName: "lightbulb")
@@ -71,12 +70,12 @@ struct WelcomeView: View {
             // Management screen (Apple Platform Deployment, "Manage Setup Assistant"), so never advise offline setup.
             Text("At a meetup: if the Mac was just erased, go through setup connected to Wi-Fi or a phone hotspot and watch: a Remote Management screen means walk away. Then finish with a throwaway local account, run the company check from that account (it's harder to fake there, though not impossible) and open Tirekick from a USB stick or a download.")
                 .font(.callout)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(Space.xs)
-        .background(scheme == .dark ? AnyShapeStyle(Color.black.opacity(0.25)) : AnyShapeStyle(.quaternary),
-                    in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .padding(Space.s)
+        .recessedPanel(cornerRadius: 14)
         .frame(maxWidth: 520)
     }
 }

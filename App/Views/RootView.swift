@@ -52,25 +52,34 @@ struct RootView: View {
         }
     }
 
-    /// Floats in a material capsule, like TestScaffold's bar.
+    /// One floating bar per screen, like TestScaffold's. The Report's controls live here too, so its one prominent
+    /// button, Save PNG, sits where Continue does and a full card never pushes it out of reach.
     private var bottomBar: some View {
         HStack {
             Button("Back") { model.back() }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-            Spacer()
-            // The Report is the last screen; its one prominent button is Save PNG.
-            if model.step != .report {
+            if model.step == .report {
+                Group {
+                    Toggle("Mask serial", isOn: $model.maskSerial).padding(.leading, Space.xs)
+                    Spacer()
+                    CopyButton { model.copyReport() }
+                    Button("Save PDF…") {
+                        if let report = model.report { Export.pdf(ReportText.full(report, maskSerial: model.maskSerial)) }
+                    }
+                    Button("Save PNG…") { if let card = model.card { Export.png(card) } }
+                        .buttonStyle(HiVisButtonStyle())
+                        .keyboardShortcut(.defaultAction)
+                }
+                .disabled(model.report == nil)
+            } else {
+                Spacer()
                 Button("Continue") { model.next() }
                     .buttonStyle(HiVisButtonStyle())
                     .keyboardShortcut(.defaultAction)
                     .disabled(model.facts == nil)
             }
         }
-        .padding(.vertical, Space.xs)
-        .padding(.horizontal, Space.s)
-        .background(.regularMaterial, in: Capsule())
-        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5))
-        .padding([.horizontal, .bottom], Space.l)
+        .buttonStyle(.bordered)                                    // the hi-vis buttons set their own
+        .controlSize(.large)
+        .floatingBar()
     }
 }

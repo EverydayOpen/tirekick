@@ -15,7 +15,7 @@
   --button-hover: #b4e02a;
   --on-button: #0a0a09;               /* black label on lime */
   --line: #262622;
-  --header: rgb(12 12 11 / .6);
+  --header: rgb(12 12 11 / .78);
   --ink: 0 0 0;
   --ok: #32d74b; --warn: #ff9f0a; --bad: #ff453a;
   --key: rgb(255 255 245 / .08);
@@ -82,6 +82,8 @@ main:focus { outline: none; }
 .wide { max-width: 1200px; margin-inline: auto; padding-inline: 20px; }
 .center { text-align: center; }
 .dim, .muted { color: var(--text-2); }
+#privacy .head { max-width: none; }   /* room for the two clauses on two lines at desktop */
+#privacy .head h2 .dim { display: block; }
 .small { font-size: 13px; line-height: 1.4; }
 .mono { font-family: var(--font-mono); letter-spacing: 0; }
 .lede { max-width: 36em; font-size: clamp(1.1rem, 1rem + .5vw, 1.3rem); line-height: 1.45; letter-spacing: -.011em; color: var(--text-2); }
@@ -92,7 +94,7 @@ main > section + section { padding-top: 0; }
 .head .lede { margin-bottom: 0; }
 .eyebrow { margin: 0 0 14px; font: 600 12px/1.2 var(--font-mono); letter-spacing: .06em; color: var(--text-2); }
 .eyebrow b { color: var(--accent); font-weight: 600; }
-.ticks { height: 6px; margin: 10px 0 20px; background: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 10px);
+.ticks { height: 8px; margin: 10px 0 20px; background: repeating-linear-gradient(90deg, rgb(255 255 255 / .2) 0 1px, transparent 1px 10px);
   -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent); mask-image: linear-gradient(90deg, #000 40%, transparent); }
 .grid { display: grid; gap: 16px; }
 .grid.three { grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); }
@@ -159,7 +161,7 @@ a.key:active { translate: 0 1px; }
 
 /* Pairs: the listing's claim, with Tirekick's finding lying on top of it. */
 .pairs { display: grid; gap: 36px 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
-.pair { display: grid; }
+.pair { display: grid; align-content: start; }
 .pair .claim { margin: 0; padding: 18px 20px 46px; border-radius: var(--r-l); background: var(--bg-alt); box-shadow: inset 0 0 0 1px var(--line); color: var(--text-2); font-size: 1.15rem; font-style: italic; letter-spacing: -.015em; }
 .pair .claim small { display: block; margin-bottom: 6px; font: 500 12px/1.2 var(--font-mono); font-style: normal; letter-spacing: .04em; }
 .pair .finding { margin: -30px 0 0 8%; padding: 18px 20px; border-radius: var(--r-m); box-shadow: var(--shadow); }
@@ -307,9 +309,11 @@ details { perspective: var(--persp-card); }
 .scene { display: grid; gap: clamp(28px, 5vw, 48px); align-items: start; }
 .mac { position: relative; width: 300px; max-width: 100%; margin-inline: auto; transform: rotateX(8deg); transform-style: preserve-3d; }
 .lid { aspect-ratio: 16 / 10.5; padding: 3.5%; border-radius: 16px 16px 4px 4px; transform-origin: 50% 100%;
-  background: linear-gradient(160deg, #2a2b2e, #151618); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .12), inset 0 1px 0 rgb(255 255 255 / .18); }
+  background: linear-gradient(160deg, #34363b, #17181b); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .16), inset 0 1px 0 rgb(255 255 255 / .22); }
 .screen { position: relative; display: grid; place-items: center; height: 100%; border-radius: 6px; overflow: hidden; background: radial-gradient(80% 70% at 50% 40%, #1a2410, #07090b); }
 .screen img { width: 22%; border-radius: 22%; box-shadow: 0 0 40px rgb(198 242 60 / .25); }
+.screen .ui { position: absolute; left: 12%; right: 12%; bottom: 12%; display: grid; gap: 6px; font: 600 9px/1 var(--font-mono); color: #c6f23c; text-align: left; }
+.screen .ui .bar { height: 3px; border-radius: 2px; background: linear-gradient(90deg, #c6f23c 55%, rgb(255 255 255 / .12) 55%); }
 .screen::after { content: ""; position: absolute; inset: 0; background: #000; opacity: 0; }
 .beam { position: absolute; inset: 0; opacity: 0; background: linear-gradient(transparent 42%, rgb(198 242 60 / .55) 50%, transparent 58%); }
 .deck { position: relative; height: 12px; margin-inline: -7%; border-radius: 0 0 16px 16px / 0 0 10px 10px; background: linear-gradient(#d9dadd, #8e9095); box-shadow: inset 0 1px 0 #fff; }
@@ -371,10 +375,10 @@ details { perspective: var(--persp-card); }
   .hero-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
   .hero-copy { text-align: left; } .hero .actions { justify-content: flex-start; } .hero-copy .lede { margin-inline: 0; }
   .hero h1 { font-size: clamp(3rem, 1rem + 3.4vw, 4.25rem); }
-  .stage.bay { --hy: 206px; --spill: 33%; padding-inline: 36px; }
+  .stage.bay { --hy: 183px; --spill: 33%; padding: 32px 36px 40px; }
   .bay .scene { grid-template-columns: 1fr; gap: 0; }
   .bay .mac { grid-area: 1 / 1; justify-self: start; width: 320px; margin-left: 5%; transform: translateZ(-60px) rotateX(8deg); }
-  .bay .card-wrap { grid-area: 1 / 1; justify-self: end; width: 64%; margin: 172px 0 0; transform: translateZ(70px); }
+  .bay .card-wrap { grid-area: 1 / 1; justify-self: end; width: 64%; margin: 140px 0 0; transform: translateZ(70px); }
   .chips { --fly: translate3d(200px, 280px, 150px); --pop: 150px; }   /* in front of the card at Z +70; tuned by eye */
 }
 
@@ -438,7 +442,7 @@ details { perspective: var(--persp-card); }
 .prose li + li { margin-top: .5em; }
 .prose li::marker { color: var(--text-2); }
 .prose .lede { margin-bottom: 1.4em; }
-.prose > .panel { margin-bottom: 40px; padding: 44px 24px 0; }
+.prose > .panel { margin-bottom: 40px; padding: 44px 24px 1px; }
 .prose > .panel .obj { margin-bottom: 56px; }
 .center .steps, .center .official { text-align: left; }
 .summary { margin: 28px 0 8px; padding: 24px 28px; border-radius: var(--r-l); background: var(--card); box-shadow: var(--z2), inset 0 1px 0 var(--horizon); }
