@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy · Tirekick</title>
+<meta name="description" content="Tirekick runs offline, sends nothing, reads nothing personal and changes nothing. No account, no analytics, no tracking, and no personal data collected.">
+<link rel="canonical" href="https://everydayopen.github.io/tirekick/privacy/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tirekick">
+<meta property="og:title" content="Privacy Policy · Tirekick">
+<meta property="og:description" content="Tirekick runs offline, sends nothing, reads nothing personal and changes nothing. No account, no analytics, no tracking, and no personal data collected.">
+<meta property="og:url" content="https://everydayopen.github.io/tirekick/privacy/">
+<meta property="og:image" content="https://everydayopen.github.io/tirekick/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A Tirekick report card for a MacBook Pro: Clean. Activation Lock off, no MDM, no company, battery 91%, SSD healthy, all keys work, gets macOS 27.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="/tirekick/favicon.png">
+<link rel="apple-touch-icon" href="/tirekick/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="Tirekick changelog" href="/tirekick/feed.xml">
+<link rel="stylesheet" href="/tirekick/styles.css">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <nav class="wrap nav" aria-label="Main">
+    <a class="brand" href="/tirekick/"><img src="/tirekick/favicon.png" width="28" height="28" alt=""><span>Tirekick</span></a>
+    <ul class="nav-links">
+      <li><a href="/tirekick/#checks">What it checks</a></li>
+      <li><a href="/tirekick/#guides">Guides</a></li>
+      <li><a href="/tirekick/#privacy">Privacy</a></li>
+      <li><a href="/tirekick/support/">Support</a></li>
+    </ul>
+    <a class="button small" href="/tirekick/download/">Download</a>
+  </nav>
+</header>
+<main id="main" tabindex="-1">
+<!-- LEGAL DRAFT: have a lawyer review before launch (site.json "legalReviewed"). -->
+<!-- Must match the app: Command.all and Command.iCloudAccountsFile (Sources/TirekickCore/Model/Evidence.swift),
+     Redact (serial masking), App/Export.swift (the only write), the camera and microphone tests, and the CI safety
+     greps (no network, no stored settings). The only other state is what macOS keeps for any app (window position,
+     NSSavePanel's last folder, saved application state). Update this page whenever any of them changes. -->
+<article class="wrap narrow prose">
+  <h1>Privacy Policy</h1>
+  <p class="muted">Last updated 28 September 2026</p>
+
+  <div class="summary">
+    <h2>The short version</h2>
+    <ul>
+      <li><b>Runs offline.</b> The app makes no network connections at all: no analytics, no crash reporting, no update check.</li>
+      <li><b>Sends nothing.</b> Nothing leaves the Mac unless you save or copy a report and share it yourself.</li>
+      <li><b>Reads nothing personal.</b> It reads hardware and system status, not your files, mail, photos or Apple Account.</li>
+      <li><b>Changes nothing.</b> It never deletes, moves or changes anything. Tirekick itself stores no settings or logs and writes no files except a report you save; like any Mac app, macOS may remember its window position and last save folder.</li>
+    </ul>
+    <p>We collect no personal data, in the app or on this website.</p>
+  </div>
+
+  <h2>Who we are</h2>
+  <p>Tirekick is made by EverydayOpen (“we”, “us”). Its source code is public on <a href="https://github.com/EverydayOpen/tirekick">GitHub</a>, so you can check everything on this page. For anything about privacy, open an issue on <a href="https://github.com/EverydayOpen/tirekick/issues">GitHub Issues</a>.</p>
+
+  <h2>What the app reads on the Mac</h2>
+  <ul>
+    <li><b>Hardware and system status</b>, by running Apple's own tools with fixed arguments: <code>system_profiler</code> (hardware, power, storage and display information), <code>ioreg</code> (battery), <code>sysctl</code> (model, memory and processor), <code>profiles status</code> (device management enrollment) and <code>fdesetup status</code> (whether FileVault is on). The results include the Mac's serial number and hardware identifiers. They stay in the app's memory and are gone when you quit.</li>
+    <li><b>iCloud sign-in</b>: the number of accounts in <code>~/Library/Preferences/MobileMeAccounts.plist</code>. The app keeps only that number, never the account's name or email address.</li>
+    <li><b>The company check</b>: if you choose to, you run a command in Terminal and paste its output into the app. That command, not Tirekick, contacts Apple. The pasted text stays in the app's memory.</li>
+    <li><b>Camera and microphone</b>: only while you have the camera or microphone test open, and only after macOS asks for your permission. The picture and the sound level are shown live and never recorded or saved. You can change the permission any time in System Settings › Privacy &amp; Security.</li>
+    <li><b>Keyboard and trackpad tests</b>: key presses and clicks inside Tirekick's own window, only to tick them off. They're never recorded.</li>
+  </ul>
+
+  <h2>What the app writes</h2>
+  <p>Tirekick itself writes nothing unless you save a report. Like any Mac app, macOS may remember its window position and the folder you last saved to. Save PNG and Save PDF write a file where you choose. Copy puts the report on the clipboard. Reports mask the serial number to its last 4 characters by default, and never include your user name, computer name or Apple Account. If you turn off Mask serial, the full serial number is in the report; think twice before posting it publicly.</p>
+
+  <h2>What the app sends over the internet</h2>
+  <p>Nothing. Tirekick makes no network connections, and an automated check on every code change rejects the common ways code could. Links, such as the Help menu's link to this website, open in your browser.</p>
+
+  <h2>This website</h2>
+  <p>This site and the app's downloads are hosted by GitHub (GitHub Pages and GitHub Releases). GitHub logs the IP address of every visitor for security purposes, under its own <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">privacy statement</a>. We don't get those logs. The site sets no cookies and loads no analytics, fonts or scripts from other servers.</p>
+
+  <h2>GitHub Issues</h2>
+  <p>If you open an issue or comment on GitHub, what you write is public, and GitHub stores it under its privacy statement. We use it only to help you. If you paste the app's raw output, the serial number is already masked, but read it before you post it. You can edit or delete your own comments at any time, and we will delete an issue you opened if you ask.</p>
+
+  <h2>Your rights</h2>
+  <p>We don't receive or keep any personal data from the app. The only personal data we handle is what you choose to post on GitHub Issues, which we use to answer you (our legitimate interest). To have it removed, ask in the issue or delete it yourself. If you are unhappy with how we handle your data, you can complain to your local data protection authority.</p>
+  <p>We are based in India. GitHub may process data in the United States and elsewhere. For transfers from the UK and EEA, GitHub relies on Standard Contractual Clauses and the EU-U.S. Data Privacy Framework (see its <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">privacy statement</a>).</p>
+  <!-- GDPR Art. 13(1)(f). GitHub's transfer mechanisms as described in its privacy statement; have the lawyer confirm the wording. -->
+
+  <h2>Children</h2>
+  <p>Tirekick is not directed at children and we don't knowingly collect data from them.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes, we update the date at the top.</p>
+</article>
+
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <h2>Product</h2>
+        <ul>
+          <li><a href="/tirekick/download/">Download</a></li>
+          <li><a href="/tirekick/changelog/">Changelog</a></li>
+          <li><a href="https://github.com/EverydayOpen/tirekick">Source code</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Guides</h2>
+        <ul>
+          <li><a href="/tirekick/guides/check-used-mac-for-mdm/">Check a used Mac for MDM</a></li>
+          <li><a href="/tirekick/guides/check-activation-lock/">Check Activation Lock</a></li>
+          <li><a href="/tirekick/guides/used-mac-meetup-checklist/">Meetup checklist</a></li>
+          <li><a href="/tirekick/guides/selling-intel-mac-after-macos-27/">Selling an Intel Mac</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Help</h2>
+        <ul>
+          <li><a href="/tirekick/support/">Support</a></li>
+          <li><a href="https://github.com/EverydayOpen/tirekick/issues">Report a problem</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Legal</h2>
+        <ul>
+          <li><a href="/tirekick/privacy/">Privacy</a></li>
+          <li><a href="/tirekick/terms/">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="fine">© 2026 EverydayOpen. Tirekick is free and open source under the MIT License.</p>
+    <p class="fine">Apple, Mac, MacBook, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Tirekick is not affiliated with or endorsed by Apple Inc.</p>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to check a used Mac for MDM and company assignment before you buy</title>
+<meta name="description" content="Two Terminal commands tell you whether a used Mac is managed by an organization, or assigned to a company that will take it back after it&#x27;s erased. What each result means, and why an MDM bypass doesn&#x27;t fix it.">
+<link rel="canonical" href="https://everydayopen.github.io/tirekick/guides/check-used-mac-for-mdm/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tirekick">
+<meta property="og:title" content="How to check a used Mac for MDM and company assignment before you buy">
+<meta property="og:description" content="Two Terminal commands tell you whether a used Mac is managed by an organization, or assigned to a company that will take it back after it&#x27;s erased. What each result means, and why an MDM bypass doesn&#x27;t fix it.">
+<meta property="og:url" content="https://everydayopen.github.io/tirekick/guides/check-used-mac-for-mdm/">
+<meta property="og:image" content="https://everydayopen.github.io/tirekick/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A Tirekick report card for a MacBook Pro: Clean. Activation Lock off, no MDM, no company, battery 91%, SSD healthy, all keys work, gets macOS 27.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="/tirekick/favicon.png">
+<link rel="apple-touch-icon" href="/tirekick/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="Tirekick changelog" href="/tirekick/feed.xml">
+<link rel="stylesheet" href="/tirekick/styles.css">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <nav class="wrap nav" aria-label="Main">
+    <a class="brand" href="/tirekick/"><img src="/tirekick/favicon.png" width="28" height="28" alt=""><span>Tirekick</span></a>
+    <ul class="nav-links">
+      <li><a href="/tirekick/#checks">What it checks</a></li>
+      <li><a href="/tirekick/#guides">Guides</a></li>
+      <li><a href="/tirekick/#privacy">Privacy</a></li>
+      <li><a href="/tirekick/support/">Support</a></li>
+    </ul>
+    <a class="button small" href="/tirekick/download/">Download</a>
+  </nav>
+</header>
+<main id="main" tabindex="-1">
+<article class="wrap narrow prose guide">
+  <p class="eyebrow">Guide · Updated September 2026 · macOS 13 to 27</p>
+  <h1>How to check a used Mac for MDM and company assignment before you buy</h1>
+
+  <div class="summary">
+    <h2>The short answer</h2>
+    <p>A company can hold on to a Mac in two ways, and you need to check both before you pay:</p>
+    <ol>
+      <li><b>Managed now.</b> Open Terminal and run <code>profiles status -type enrollment</code>. Both lines should end in <code>No</code>.</li>
+      <li><b>Assigned to the company</b>, even when nothing is managed right now. Run <code>sudo profiles show -type enrollment</code> with the Mac online. “Client is not DEP enabled.” means Apple reports no organization has set it to enroll in its device management. An <code>OrganizationName</code> means one has.</li>
+    </ol>
+    <p>If either one names an organization, walk away unless it's your employer's Mac. Only that organization can release it, and no “MDM bypass” changes that.</p>
+  </div>
+
+  <h2 id="why">Why this matters</h2>
+  <p>Companies and schools buy Macs through Apple Business (called Apple Business Manager until 2026) or Apple School Manager, and assign them to their device management (MDM) service. A Mac assigned this way enrolls itself again every time it's set up, even after a full erase. During setup it shows a <b>Remote Management</b> screen, and <a href="https://support.apple.com/guide/deployment/manage-setup-assistant-depdeff4a547/web">Apple says</a> that screen can't be skipped. From then on, the organization can lock, erase or restrict the Mac.</p>
+  <p>That's how people end up with a Mac that worked fine at the meetup and “belongs to a company” after they erase it. The seller may not even know: a Mac that left a company without being released stays assigned.</p>
+
+  <h2 id="managed">Step 1: is it managed right now?</h2>
+  <p>Open Terminal (in Applications › Utilities) and type:</p>
+  <pre><code>profiles status -type enrollment</code></pre>
+  <p>No administrator password is needed. You'll see two lines:</p>
+  <div class="table-scroll" role="region" aria-label="profiles status results" tabindex="0">
+    <table>
+      <thead><tr><th scope="col">Line</th><th scope="col">What it means</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>Enrolled via DEP: No</code></th><td>Not set up through the organization's automated enrollment. Good.</td></tr>
+        <tr><th scope="row"><code>Enrolled via DEP: Yes</code></th><td>An organization set this Mac up through Automated Device Enrollment. Walk away.</td></tr>
+        <tr><th scope="row"><code>MDM enrollment: No</code></th><td>No device management service controls it. Good.</td></tr>
+        <tr><th scope="row"><code>MDM enrollment: Yes</code></th><td>A device management service controls it (“User Approved” means someone approved it on this Mac). Walk away unless you know and trust the organization.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>You can also look in System Settings: on macOS 15 and later, <b>General › Device Management</b>; on macOS 13 and 14, <b>Privacy &amp; Security › Profiles</b>. A profile from an organization you don't know is a reason to ask questions. <a href="https://support.apple.com/guide/mac-help/change-device-management-settings-mh35474/mac">Apple notes</a> that a profile you can't remove may mean the Mac is managed.</p>
+
+  <h2 id="assigned">Step 2: is it assigned to a company?</h2>
+  <p>A Mac can pass step 1 and still be assigned: after an erase, or when it was set up without the organization's enrollment, nothing is enrolled, but Apple's servers still list it. Connect the Mac to the internet, open Terminal and type:</p>
+  <pre><code>sudo profiles show -type enrollment</code></pre>
+  <p>Type the Mac's administrator password when asked (it doesn't show as you type).</p>
+  <ul>
+    <li><code>Error fetching Device Enrollment configuration: Client is not DEP enabled.</code> Apple reports no organization has set this Mac to enroll in its device management. Good.</li>
+    <li><code>Device Enrollment configuration:</code> followed by a block with <code>OrganizationName = …</code> The Mac is assigned to that organization. Walk away, and tell the seller who it belongs to.</li>
+    <li>An error that mentions the <b>cloud configuration server</b>, or anything else: the check didn't work, usually because the Mac is offline. Connect and try again. Don't read an error as “not assigned”.</li>
+  </ul>
+  <p>If a notification then asks you to enroll the Mac in device management, don't. It means the same thing: the Mac is assigned to an organization.</p>
+
+  <h2 id="setup">If the Mac has already been erased</h2>
+  <p>Go through setup connected to Wi-Fi or a phone hotspot, and watch the next screens. Apple silicon and T2 Macs that are registered to an organization <a href="https://support.apple.com/guide/deployment/manage-setup-assistant-depdeff4a547/web">need the internet to get through setup</a> after an erase. A <b>Remote Management</b> screen naming an organization means walk away. If setup finishes without one, create a local account and run the two commands above.</p>
+
+  <h2 id="bypass">Why an “MDM bypass” isn't a fix</h2>
+  <ul>
+    <li>A bypass hides the enrollment screen on one installation. The Mac stays assigned to the organization, so the screen can come back after an update or an erase.</li>
+    <li>The organization can still see and manage the Mac once it enrolls again.</li>
+    <li>A Mac sold “with MDM bypassed” is a Mac the seller couldn't get released. Only the organization can release it, from its Apple Business or Apple School Manager account.</li>
+  </ul>
+  <p>If you already bought one, contact the seller and the organization named in the output, and ask the organization to release the Mac.</p>
+
+  <h2 id="tirekick">Doing this with Tirekick</h2>
+  <p>We make Tirekick, a free, open-source Mac app that runs step 1 for you, walks you through step 2 (it shows the command with a Copy button, and reads the result you paste back), and checks Activation Lock, battery, SSD and macOS updates in the same two minutes. It never asks for your password and never helps bypass anything. <a href="/tirekick/">Learn more</a>.</p>
+
+  <h2 id="sources">Sources</h2>
+  <ul class="sources">
+    <li>Apple Platform Deployment: <a href="https://support.apple.com/guide/deployment/manage-setup-assistant-depdeff4a547/web">Manage Setup Assistant for Apple devices</a> (Remote Management can't be skipped; network required after an erase)</li>
+    <li>Apple: <a href="https://support.apple.com/guide/mac-help/change-device-management-settings-mh35474/mac">Change Device Management settings on Mac</a></li>
+    <li>Apple: <a href="https://support.apple.com/guide/apple-business-manager/apple-business-manager-is-now-apple-business-axmd79d79dea/web">Apple Business Manager is now Apple Business</a></li>
+    <li>Der Flounder: <a href="https://derflounder.wordpress.com/2018/03/30/detecting-user-approved-mdm-using-the-profiles-command-line-tool-on-macos-10-13-4/">Detecting user-approved MDM using the profiles command line tool</a></li>
+    <li>Twocanoes: <a href="https://twocanoes.com/knowledge-base/troubleshooting-deployment-enrollment-dep-for-macos-by-viewing-the-activation-record/">Viewing the activation record</a> (sample <code>profiles show</code> output)</li>
+  </ul>
+</article>
+
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <h2>Product</h2>
+        <ul>
+          <li><a href="/tirekick/download/">Download</a></li>
+          <li><a href="/tirekick/changelog/">Changelog</a></li>
+          <li><a href="https://github.com/EverydayOpen/tirekick">Source code</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Guides</h2>
+        <ul>
+          <li><a href="/tirekick/guides/check-used-mac-for-mdm/">Check a used Mac for MDM</a></li>
+          <li><a href="/tirekick/guides/check-activation-lock/">Check Activation Lock</a></li>
+          <li><a href="/tirekick/guides/used-mac-meetup-checklist/">Meetup checklist</a></li>
+          <li><a href="/tirekick/guides/selling-intel-mac-after-macos-27/">Selling an Intel Mac</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Help</h2>
+        <ul>
+          <li><a href="/tirekick/support/">Support</a></li>
+          <li><a href="https://github.com/EverydayOpen/tirekick/issues">Report a problem</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Legal</h2>
+        <ul>
+          <li><a href="/tirekick/privacy/">Privacy</a></li>
+          <li><a href="/tirekick/terms/">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="fine">© 2026 EverydayOpen. Tirekick is free and open source under the MIT License.</p>
+    <p class="fine">Apple, Mac, MacBook, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Tirekick is not affiliated with or endorsed by Apple Inc.</p>
+  </div>
+</footer>
+</body>
+</html>

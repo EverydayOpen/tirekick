@@ -1,0 +1,29 @@
+# Tirekick
+
+> Kick the tires on a used Mac before you pay.
+
+Tirekick is a free, open-source Mac app (MIT License; macOS 13 or later, Apple silicon and Intel) that you open on a second-hand Mac. In about two minutes it reports, in plain English, whether the Mac is Activation-Locked, managed by an organization (MDM) or assigned to a company in Apple Business or Apple School Manager, how worn the battery and SSD are, what the specs are, and whether it still gets macOS updates. Guided tests cover the keyboard, display, speakers, microphone, camera and trackpad, and it makes a shareable report card (PNG or PDF, serial masked).
+
+- It runs only Apple's own tools, with fixed arguments: system_profiler, ioreg, sysctl, and profiles and fdesetup with "status". The company-assignment check is a command the user runs in Terminal (sudo /usr/bin/profiles show -type enrollment) and pastes back; the app never asks for a password.
+- Read-only: it never deletes, moves or changes anything, never signs anyone out, and writes only a report the user saves.
+- Offline: no network access, no analytics, no update check.
+- It never helps bypass MDM or Activation Lock.
+- It can't tell whether a Mac was reported lost or stolen, whether an Intel Mac has a firmware password, parts and repair history, or liquid damage.
+- Download: https://everydayopen.github.io/tirekick/download/
+- Source and support: https://github.com/EverydayOpen/tirekick
+
+## Pages
+
+- [Tirekick: check a used Mac for locks, MDM, battery and SSD before you pay](https://everydayopen.github.io/tirekick/): A free, open-source Mac app you open on a second-hand Mac. In about two minutes it tells you if it's Activation-Locked or tied to a company, how worn the battery and SSD are, and whether it still gets macOS updates.
+- [What's New · Tirekick](https://everydayopen.github.io/tirekick/changelog/): Every Tirekick release and what changed in it. Also available as an RSS feed.
+- [How to check Activation Lock on a used Mac before you buy](https://everydayopen.github.io/tirekick/guides/check-activation-lock/): Where macOS shows Activation Lock status, which Macs have it, what the seller must do before you pay, and why nobody but the owner can remove it.
+- [How to check a used Mac for MDM and company assignment before you buy](https://everydayopen.github.io/tirekick/guides/check-used-mac-for-mdm/): Two Terminal commands tell you whether a used Mac is managed by an organization, or assigned to a company that will take it back after it's erased. What each result means, and why an MDM bypass doesn't fix it.
+- [Selling an Intel Mac after macOS 27: how to prepare it and write a listing buyers trust](https://everydayopen.github.io/tirekick/guides/selling-intel-mac-after-macos-27/): macOS 27 runs only on Apple silicon, so Intel Macs are being sold. What that means for yours, how to get it out of your Apple Account and any company's management, how to erase it, and what to put in the listing.
+- [Used-Mac meetup checklist: what to check before you pay (printable)](https://everydayopen.github.io/tirekick/guides/used-mac-meetup-checklist/): A printable checklist for buying a used Mac in person: locks and company enrollment first, then specs, battery, SSD, screen, keys and ports, and what the seller should do before you hand over money.
+- [Privacy Policy · Tirekick](https://everydayopen.github.io/tirekick/privacy/): Tirekick runs offline, sends nothing, reads nothing personal and changes nothing. No account, no analytics, no tracking, and no personal data collected.
+- [Support · Tirekick](https://everydayopen.github.io/tirekick/support/): Get help with Tirekick: report a problem on GitHub, send the raw output with the serial masked, and what Tirekick can't tell you.
+- [Terms of Use · Tirekick](https://everydayopen.github.io/tirekick/terms/): Tirekick is free, open-source software under the MIT License. It reports what a Mac reports, comes without warranty, and isn't a guarantee about any Mac. The short, plain terms.
+
+## Feeds
+
+- [Changelog RSS](https://everydayopen.github.io/tirekick/feed.xml)

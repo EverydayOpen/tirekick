@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to check Activation Lock on a used Mac before you buy</title>
+<meta name="description" content="Where macOS shows Activation Lock status, which Macs have it, what the seller must do before you pay, and why nobody but the owner can remove it.">
+<link rel="canonical" href="https://everydayopen.github.io/tirekick/guides/check-activation-lock/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tirekick">
+<meta property="og:title" content="How to check Activation Lock on a used Mac before you buy">
+<meta property="og:description" content="Where macOS shows Activation Lock status, which Macs have it, what the seller must do before you pay, and why nobody but the owner can remove it.">
+<meta property="og:url" content="https://everydayopen.github.io/tirekick/guides/check-activation-lock/">
+<meta property="og:image" content="https://everydayopen.github.io/tirekick/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A Tirekick report card for a MacBook Pro: Clean. Activation Lock off, no MDM, no company, battery 91%, SSD healthy, all keys work, gets macOS 27.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="/tirekick/favicon.png">
+<link rel="apple-touch-icon" href="/tirekick/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="Tirekick changelog" href="/tirekick/feed.xml">
+<link rel="stylesheet" href="/tirekick/styles.css">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <nav class="wrap nav" aria-label="Main">
+    <a class="brand" href="/tirekick/"><img src="/tirekick/favicon.png" width="28" height="28" alt=""><span>Tirekick</span></a>
+    <ul class="nav-links">
+      <li><a href="/tirekick/#checks">What it checks</a></li>
+      <li><a href="/tirekick/#guides">Guides</a></li>
+      <li><a href="/tirekick/#privacy">Privacy</a></li>
+      <li><a href="/tirekick/support/">Support</a></li>
+    </ul>
+    <a class="button small" href="/tirekick/download/">Download</a>
+  </nav>
+</header>
+<main id="main" tabindex="-1">
+<article class="wrap narrow prose guide">
+  <p class="eyebrow">Guide · Updated September 2026 · macOS 13 to 27</p>
+  <h1>How to check Activation Lock on a used Mac before you buy</h1>
+
+  <div class="summary">
+    <h2>The short answer</h2>
+    <ol>
+      <li>Hold the Option key, click the Apple menu and choose <b>System Information</b>.</li>
+      <li>Under <b>Hardware Overview</b>, find <b>Activation Lock Status</b>. It should say <b>Disabled</b>.</li>
+      <li>If it says <b>Enabled</b>, don't pay yet. Ask the seller to turn off Find My in front of you, then check again.</li>
+    </ol>
+    <p>If there's no Activation Lock Status line at all, the Mac doesn't support Activation Lock.</p>
+  </div>
+
+  <h2 id="what">What Activation Lock is</h2>
+  <p>Activation Lock ties a Mac to its owner's Apple Account. It turns on by itself when the owner signs in and turns on Find My. Once the Mac is erased, it can't be set up again without that Apple Account and password, so a locked Mac is of little use to anyone else.</p>
+  <p>It exists on <a href="https://support.apple.com/en-us/102541">Macs with Apple silicon or the Apple T2 Security Chip</a> running macOS Catalina or later. That's every Apple-silicon Mac, and the Intel Macs with a T2 chip, most of them from 2018 to 2020 (Apple keeps a <a href="https://support.apple.com/en-us/103265">list of T2 Macs</a>).</p>
+
+  <h2 id="check">Checking it</h2>
+  <p><b>System Information:</b> hold Option, click the Apple menu and choose System Information. Hardware Overview, the page it opens on, shows <b>Activation Lock Status: Enabled</b> or <b>Disabled</b>.</p>
+  <p><b>Terminal:</b> the same line, typed by hand:</p>
+  <pre><code>system_profiler SPHardwareDataType | grep "Activation Lock"</code></pre>
+  <p>Check it on the Mac itself, not from a photo or a screenshot the seller sends. Both are easy to fake.</p>
+
+  <h2 id="seller">What the seller has to do</h2>
+  <p>If it says Enabled, the seller turns off Find My in front of you, <a href="https://support.apple.com/en-us/102541">as Apple describes</a>:</p>
+  <ol>
+    <li>Apple menu › <b>System Settings</b>, then click their name at the top of the sidebar.</li>
+    <li>Click <b>iCloud</b>, then <b>See All</b> (or <b>Show More Apps</b>), then <b>Find My Mac</b>, and turn it off. macOS asks for their Apple Account password.</li>
+    <li>Check System Information again. It should now say Disabled.</li>
+  </ol>
+  <p>A seller who can't do this, or has a reason not to (“I forgot the password”, “it's my cousin's”), is telling you the Mac isn't theirs to sell. If the Mac is already erased and asks for someone else's Apple Account during setup, it's locked: only the owner can remove it, from <a href="https://www.icloud.com/find">iCloud.com/find</a>.</p>
+  <p>Before you leave, the seller should also sign out of their Apple Account (System Settings › their name › Sign Out) and, ideally, erase the Mac in front of you (<a href="/tirekick/guides/used-mac-meetup-checklist/">see the checklist</a>).</p>
+
+  <h2 id="not-enough">Activation Lock off isn't the whole story</h2>
+  <p>A Mac can be free of Activation Lock and still belong to a company that will take it back after an erase. That's a separate check: <a href="/tirekick/guides/check-used-mac-for-mdm/">how to check a used Mac for MDM</a>. And no service can remove Activation Lock without the owner: offers to “unlock” or “bypass” it aren't something you want to pay for.</p>
+
+  <h2 id="tirekick">Doing this with Tirekick</h2>
+  <p>We make Tirekick, a free, open-source Mac app that reads Activation Lock status for you, together with company enrollment, battery, SSD and macOS updates, and shows the raw output behind each answer. If Activation Lock is on, it says so plainly and checks again once the seller turns off Find My. <a href="/tirekick/">Learn more</a>.</p>
+
+  <h2 id="sources">Sources</h2>
+  <ul class="sources">
+    <li>Apple: <a href="https://support.apple.com/en-us/102541">Activation Lock for Mac</a></li>
+    <li>Apple: <a href="https://support.apple.com/en-us/103265">Mac computers with the Apple T2 Security Chip</a></li>
+    <li>Apple Platform Deployment: <a href="https://support.apple.com/guide/deployment/activation-lock-depf4ab94ef1/web">Activation Lock on Apple devices</a></li>
+  </ul>
+</article>
+
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <h2>Product</h2>
+        <ul>
+          <li><a href="/tirekick/download/">Download</a></li>
+          <li><a href="/tirekick/changelog/">Changelog</a></li>
+          <li><a href="https://github.com/EverydayOpen/tirekick">Source code</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Guides</h2>
+        <ul>
+          <li><a href="/tirekick/guides/check-used-mac-for-mdm/">Check a used Mac for MDM</a></li>
+          <li><a href="/tirekick/guides/check-activation-lock/">Check Activation Lock</a></li>
+          <li><a href="/tirekick/guides/used-mac-meetup-checklist/">Meetup checklist</a></li>
+          <li><a href="/tirekick/guides/selling-intel-mac-after-macos-27/">Selling an Intel Mac</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Help</h2>
+        <ul>
+          <li><a href="/tirekick/support/">Support</a></li>
+          <li><a href="https://github.com/EverydayOpen/tirekick/issues">Report a problem</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Legal</h2>
+        <ul>
+          <li><a href="/tirekick/privacy/">Privacy</a></li>
+          <li><a href="/tirekick/terms/">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="fine">© 2026 EverydayOpen. Tirekick is free and open source under the MIT License.</p>
+    <p class="fine">Apple, Mac, MacBook, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Tirekick is not affiliated with or endorsed by Apple Inc.</p>
+  </div>
+</footer>
+</body>
+</html>

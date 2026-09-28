@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support · Tirekick</title>
+<meta name="description" content="Get help with Tirekick: report a problem on GitHub, send the raw output with the serial masked, and what Tirekick can&#x27;t tell you.">
+<link rel="canonical" href="https://everydayopen.github.io/tirekick/support/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tirekick">
+<meta property="og:title" content="Support · Tirekick">
+<meta property="og:description" content="Get help with Tirekick: report a problem on GitHub, send the raw output with the serial masked, and what Tirekick can&#x27;t tell you.">
+<meta property="og:url" content="https://everydayopen.github.io/tirekick/support/">
+<meta property="og:image" content="https://everydayopen.github.io/tirekick/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A Tirekick report card for a MacBook Pro: Clean. Activation Lock off, no MDM, no company, battery 91%, SSD healthy, all keys work, gets macOS 27.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="/tirekick/favicon.png">
+<link rel="apple-touch-icon" href="/tirekick/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="Tirekick changelog" href="/tirekick/feed.xml">
+<link rel="stylesheet" href="/tirekick/styles.css">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <nav class="wrap nav" aria-label="Main">
+    <a class="brand" href="/tirekick/"><img src="/tirekick/favicon.png" width="28" height="28" alt=""><span>Tirekick</span></a>
+    <ul class="nav-links">
+      <li><a href="/tirekick/#checks">What it checks</a></li>
+      <li><a href="/tirekick/#guides">Guides</a></li>
+      <li><a href="/tirekick/#privacy">Privacy</a></li>
+      <li><a href="/tirekick/support/">Support</a></li>
+    </ul>
+    <a class="button small" href="/tirekick/download/">Download</a>
+  </nav>
+</header>
+<main id="main" tabindex="-1">
+<article class="wrap narrow prose">
+  <h1>Support</h1>
+  <p class="lede">Report a problem or ask a question on <a href="https://github.com/EverydayOpen/tirekick/issues">GitHub Issues</a>. Please include the Mac's model, its macOS version and, if you can, the raw output (see below).</p>
+
+  <h2 id="raw">Sending the raw output</h2>
+  <p>When a check says “Couldn't check” or looks wrong, the fastest fix starts with exactly what your Mac printed.</p>
+  <ol>
+    <li>Open Tirekick and run the checks.</li>
+    <li>Choose Help › Copy Raw Data. It copies every command Tirekick ran and its output, with the serial number and hardware identifiers masked.</li>
+    <li>Paste it into your issue.</li>
+  </ol>
+  <p>Issues on GitHub are public, so read it before you post it and remove anything you'd rather not share. Each report from a real Mac becomes a test that keeps that Mac's output working in future versions.</p>
+
+  <h2 id="company-check">The company check says “Couldn't check”</h2>
+  <p>The command you run in Terminal asks Apple's servers, so the Mac needs the internet, and your password must be an administrator's. Connect to Wi-Fi, run <code>sudo /usr/bin/profiles show -type enrollment</code> again and paste the whole output. An error that mentions the cloud configuration server usually means no internet connection. Tirekick never treats an error as “not assigned”.</p>
+
+  <h2 id="limits">What Tirekick can't tell you</h2>
+  <ul>
+    <li>Whether the Mac was reported lost or stolen. No public lookup exists.</li>
+    <li>Whether an Intel Mac has a firmware password.</li>
+    <li>Parts and repair history, and liquid damage.</li>
+    <li>Whether the seller owns the Mac. Ask for the receipt.</li>
+  </ul>
+  <p>It also can't run on a Mac stuck at the setup screen, or on Macs too old for macOS 13. The <a href="/tirekick/guides/used-mac-meetup-checklist/">meetup checklist</a> covers both.</p>
+
+  <h2 id="bypass">Can it remove MDM or Activation Lock?</h2>
+  <p>No, and it never will. Only the owner can turn off Activation Lock, and only the organization can release a Mac it owns. See <a href="/tirekick/guides/check-used-mac-for-mdm/">how to check a used Mac for MDM</a>.</p>
+
+  <h2>More help</h2>
+  <ul>
+    <li><a href="/tirekick/guides/check-activation-lock/">How to check Activation Lock on a used Mac</a></li>
+    <li><a href="/tirekick/guides/selling-intel-mac-after-macos-27/">Selling an Intel Mac after macOS 27</a></li>
+    <li><a href="/tirekick/changelog/">What's new in each version</a></li>
+    <li><a href="/tirekick/privacy/">Privacy policy</a> · <a href="/tirekick/terms/">Terms</a></li>
+  </ul>
+</article>
+
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <h2>Product</h2>
+        <ul>
+          <li><a href="/tirekick/download/">Download</a></li>
+          <li><a href="/tirekick/changelog/">Changelog</a></li>
+          <li><a href="https://github.com/EverydayOpen/tirekick">Source code</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Guides</h2>
+        <ul>
+          <li><a href="/tirekick/guides/check-used-mac-for-mdm/">Check a used Mac for MDM</a></li>
+          <li><a href="/tirekick/guides/check-activation-lock/">Check Activation Lock</a></li>
+          <li><a href="/tirekick/guides/used-mac-meetup-checklist/">Meetup checklist</a></li>
+          <li><a href="/tirekick/guides/selling-intel-mac-after-macos-27/">Selling an Intel Mac</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Help</h2>
+        <ul>
+          <li><a href="/tirekick/support/">Support</a></li>
+          <li><a href="https://github.com/EverydayOpen/tirekick/issues">Report a problem</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Legal</h2>
+        <ul>
+          <li><a href="/tirekick/privacy/">Privacy</a></li>
+          <li><a href="/tirekick/terms/">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="fine">© 2026 EverydayOpen. Tirekick is free and open source under the MIT License.</p>
+    <p class="fine">Apple, Mac, MacBook, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Tirekick is not affiliated with or endorsed by Apple Inc.</p>
+  </div>
+</footer>
+</body>
+</html>
