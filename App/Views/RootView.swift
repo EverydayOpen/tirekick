@@ -1,7 +1,8 @@
 import SwiftUI
 import TirekickCore
 
-/// Four screens like Setup Assistant, with a Back/Continue bar; an open test takes the whole window.
+/// Four screens like Setup Assistant on the bay: StepBar in the hidden title bar's strip, a floating Back/Continue
+/// bar; an open test takes the whole window.
 struct RootView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -12,11 +13,21 @@ struct RootView: View {
                 testView(test)
             } else {
                 VStack(spacing: 0) {
-                    screen.frame(maxWidth: .infinity, maxHeight: .infinity)
-                    if model.step != .welcome { bottomBar }
+                    // VERIFY on a Mac: the capsule's centre is level with the traffic lights; nudge the top padding.
+                    StepBar(current: model.step)
+                        .padding(.top, 6)
+                        .padding(.bottom, Space.xs)
+                    screen
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        // An inset, not a row: scrolling content passes under the material bar.
+                        .safeAreaInset(edge: .bottom, spacing: 0) {
+                            if model.step != .welcome { bottomBar }
+                        }
                 }
+                .ignoresSafeArea(.container, edges: .top)
             }
         }
+        .background { Bay(step: model.step) }
         .animation(Motion.standard(reduceMotion), value: model.step)
         .animation(Motion.standard(reduceMotion), value: model.openTest)
     }
@@ -41,23 +52,34 @@ struct RootView: View {
         }
     }
 
+    /// One floating bar per screen, like TestScaffold's. The Report's controls live here too, so its one prominent
+    /// button, Save PNG, sits where Continue does and a full card never pushes it out of reach.
     private var bottomBar: some View {
-        VStack(spacing: 0) {
-            Divider()
-            HStack {
-                Button("Back") { model.back() }
-                Spacer()
-                // The Report is the last screen; its one prominent button is Save PNG.
-                if model.step != .report {
-                    Button("Continue") { model.next() }
-                        .buttonStyle(.borderedProminent)
+        HStack {
+            Button("Back") { model.back() }
+            if model.step == .report {
+                Group {
+                    Toggle("Mask serial", isOn: $model.maskSerial).padding(.leading, Space.xs)
+                    Spacer()
+                    CopyButton { model.copyReport() }
+                    Button("Save PDF…") {
+                        if let report = model.report { Export.pdf(ReportText.full(report, maskSerial: model.maskSerial)) }
+                    }
+                    Button("Save PNG…") { if let card = model.card { Export.png(card) } }
+                        .buttonStyle(HiVisButtonStyle())
                         .keyboardShortcut(.defaultAction)
-                        .disabled(model.facts == nil)
                 }
+                .disabled(model.report == nil)
+            } else {
+                Spacer()
+                Button("Continue") { model.next() }
+                    .buttonStyle(HiVisButtonStyle())
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(model.facts == nil)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-            .padding(Space.l)
         }
+        .buttonStyle(.bordered)                                    // the hi-vis buttons set their own
+        .controlSize(.large)
+        .floatingBar()
     }
 }

@@ -12,7 +12,8 @@ Canonicals, og:image, the sitemap, the feed, robots.txt and llms.txt use the ful
   python tools/build_site.py --check   builds into temp dirs for baseURL, its bare origin and a /<releases repo>
                                        project path, then checks internal links (inside the path prefix), anchors,
                                        assets, meta tags, headings, alt text, XML, sitemap/feed/llms.txt URLs,
-                                       placeholders, text contrast and theme switches; exit 1 on any problem
+                                       placeholders, text contrast, theme switches, the CSP (no inline
+                                       script, style or handler) and size budgets; exit 1 on any problem
 """
 import datetime
 import html
@@ -34,8 +35,15 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 PLACEHOLDER = re.compile("REPLACE_ME|OWNER")
 # Body of /download/ until it can redirect (build()); check() still needs its one <h1>.
-SOON = ('<article class="wrap narrow prose center"><h1>Coming soon</h1><p>{{name}} 1.0 isn\'t available yet. The '
-        '<a href="/changelog/">changelog</a> and its <a href="/feed.xml">RSS feed</a> will say when it is.</p></article>\n')
+SOON = ('<div class="band bay"><div class="podium"><i class="floor" aria-hidden="true"></i><i class="laser" aria-hidden="true">'
+        '</i><img class="icon" src="/icon.png" width="128" height="128" alt="{{name}} app icon"></div></div>'
+        '<article class="wrap narrow prose center"><h1>Coming soon</h1><p class="lede">{{name}} 1.0 isn\'t available '
+        'yet. The <a href="/changelog/">changelog</a> and its <a href="/feed.xml">RSS feed</a> will say when it is.</p>'
+        '</article>\n')
+# layout.html's Content-Security-Policy allows only same-origin files, so no page may use inline code.
+CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'"
+# Bytes, for each built file matching the pattern (docs/DESIGN.md §8).
+BUDGET = {"styles.css": 40_000, "motion.js": 5_000, "index.html": 36_000, "fonts/*.woff2": 32_000, "shots/*": 110_000}
 
 
 class Raw(str):
@@ -117,6 +125,7 @@ def build(out, site):
     entries = changelog.parse(str(log)) if log.exists() else []
     v = values(site)
     v["changelog"] = changelog_html(entries, site["name"])
+    v["version"] = f"Version {entries[0]['version']}" if entries else "1.0 coming soon"
     layout = (SITE / "src" / "layout.html").read_text(encoding="utf-8")
     prefix = urlsplit(site["baseURL"]).path   # "/tirekick" on a project site, "" on a custom domain
 
@@ -135,8 +144,7 @@ def build(out, site):
             # Before the first release (no CHANGELOG row on main) or with a placeholder target there is nothing to
             # download: show "Coming soon" instead of redirecting into a 404.
             if not PLACEHOLDER.search(target) and entries:
-                head.append(f'<meta http-equiv="refresh" content="0; url={html.escape(target)}">')
-                head.append(f"<script>location.replace({json.dumps(target)})</script>")
+                head.append(f'<meta http-equiv="refresh" content="0; url={html.escape(target)}">')   # no script: CSP
             else:
                 body = SOON
         else:
@@ -146,6 +154,9 @@ def build(out, site):
         dest = out / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         text = re.sub(r'\b(href|src)="/(?!/)', rf'\1="{prefix}/', fill(layout, page, "layout.html"))
+        # srcset="/a.jpg 1x, /b.jpg 2x": every candidate gets the prefix too.
+        text = re.sub(r'\bsrcset="([^"]*)"',
+                      lambda m: 'srcset="' + re.sub(r'(^|,\s*)/(?!/)', rf'\1{prefix}/', m[1]) + '"', text)
         dest.write_text(text, encoding="utf-8", newline="\n")
 
     (out / "feed.xml").write_text(feed(v, entries), encoding="utf-8", newline="\n")
@@ -166,13 +177,22 @@ class Page(HTMLParser):
     def __init__(self):
         super().__init__()
         self.links, self.ids, self.meta, self.title, self.h1, self.noalt = [], set(), {}, "", 0, 0
-        self._title = False
+        self._title, self.csp, self.inline = False, None, []
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
+        if tag == "meta" and (a.get("http-equiv") or "").lower() == "content-security-policy":
+            self.csp = a.get("content")
+        # What the CSP blocks: inline scripts (JSON-LD is data, not script), <style>, style="" and on* handlers.
+        if tag == "script" and not a.get("src") and a.get("type") != "application/ld+json" or tag == "style":
+            self.inline.append(f"inline <{tag}> (blocked by the CSP)")
+        self.inline += [f"<{tag} {k}> (blocked by the CSP)" for k in a if k == "style" or k.startswith("on")]
+        if a.get("target") == "_blank" and "noopener" not in (a.get("rel") or ""):   # a new tab gets no opener
+            self.inline.append(f"<{tag} target=_blank> without rel=noopener")
         if "id" in a:
             self.ids.add(a["id"])
         self.links += [a[k] for k in ("href", "src") if a.get(k)]
+        self.links += [c.split()[0] for c in (a.get("srcset") or "").split(",") if c.strip()]
         if tag == "meta" and (a.get("name") or a.get("property")):
             self.meta[a.get("name") or a.get("property")] = a.get("content") or ""
         if tag == "link" and a.get("rel") == "canonical":
@@ -190,7 +210,8 @@ class Page(HTMLParser):
 
 
 def contrast(css):
-    """WCAG AA (4.5:1) for the text colors on the page backgrounds, light and dark (the dark :root overrides light)."""
+    """WCAG AA (4.5:1) for the text colors on the page backgrounds, for both :root blocks (the second overrides the
+    first: here the dark base palette, then prefers-contrast: more; the "light"/"dark" labels are just labels)."""
     # ponytail: only 6-digit hex tokens are measured (not rgb() ones like --header), and not the report card
     # illustration, which is always light like the app's shared PNG and uses fixed colours (styles.css .report).
     # Add pairs here when a color lands on a new background.
@@ -198,10 +219,11 @@ def contrast(css):
         c = [int(c[i:i + 2], 16) / 255 for i in (1, 3, 5)]
         c = [x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
         return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
-    blocks = re.findall(r":root\s*\{([^}]*)\}", css)   # light, then the dark override
+    blocks = re.findall(r":root\s*\{([^}]*)\}", css)   # base, then the override
     light, dark = (dict(re.findall(r"--([\w-]+):\s*(#[0-9a-fA-F]{6})\b", b)) for b in blocks)
     pairs = [(f, b) for f in ("text", "text-2", "accent") for b in ("bg", "bg-alt", "card")]
-    pairs += [("#ffffff", "button"), ("#ffffff", "button-hover")]   # .button, .skip, .steps numbers
+    on = "on-button" if "on-button" in light else "#ffffff"   # the .button and .skip label
+    pairs += [(on, "button"), (on, "button-hover")]
     errors = []
     for scheme, t in (("light", light), ("dark", {**light, **dark})):
         for fg, bg in pairs:
@@ -250,6 +272,9 @@ def check(out, site, v):
             errors.append(f"{rel}: {p.h1} <h1> elements, want 1")
         if p.noalt:
             errors.append(f"{rel}: {p.noalt} <img> without alt")
+        if p.csp != CSP:
+            errors.append(f"{rel}: Content-Security-Policy meta is {p.csp!r}, want {CSP!r}")
+        errors += [f"{rel}: {what}" for what in p.inline]
         for link in p.links + [p.meta.get("og:image", "")]:
             resolve(rel, base + url, link)
     for f in sorted(out.rglob("*")):
@@ -274,6 +299,10 @@ def check(out, site, v):
         if PLACEHOLDER.search(str(val)) and key not in site.get("placeholders", []):
             errors.append(f"site.json: {key} is a placeholder but not listed in \"placeholders\"")
     errors += contrast((out / "styles.css").read_text(encoding="utf-8"))
+    for pattern, cap in BUDGET.items():
+        for f in out.glob(pattern):
+            if f.stat().st_size > cap:
+                errors.append(f"{f.relative_to(out).as_posix()}: {f.stat().st_size} bytes, over its {cap} byte budget")
     return errors, len(parsed)
 
 

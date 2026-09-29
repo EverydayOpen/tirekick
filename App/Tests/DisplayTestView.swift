@@ -12,10 +12,11 @@ struct DisplayTestView: View {
             instruction: "The screen fills with white, black, red, green, blue, gray and a checkerboard. On each, look for dead or stuck pixels, lines and uneven patches. Click or press any key for the next; Esc stops."
                 + (model.isAllInOne == false ? " This Mac has no built-in screen: test the one that comes with it, or choose Skip." : "")
         ) {
-            VStack(spacing: Space.m) {
+            VStack(spacing: Space.l) {
+                TestPattern()
+                // The screen's one prominent button (DESIGN.md §5.2); Skip / Problem / Pass stay plain.
                 Button(fills.finished ? "Run Again" : "Start") { fills.start() }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
+                    .buttonStyle(HiVisButtonStyle())
                 if fills.finished {
                     Text("Did every fill look even, with no odd pixels?")
                         .foregroundStyle(.secondary)
@@ -23,6 +24,20 @@ struct DisplayTestView: View {
             }
         }
         .onDisappear { fills.stop() }
+    }
+}
+
+/// The fills to come, as bars on a small lifted screen. Still: motion here would hide dead pixels (MOTION.md §5.7).
+private struct TestPattern: View {
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<6, id: \.self) { Color(nsColor: ScreenFills.colors[$0]) }
+            Image(nsImage: ScreenFills.checker).resizable(resizingMode: .tile)
+        }
+        .frame(width: 240, height: 150)
+        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+        .screenBezel(4 + Space.xs)
+        .accessibilityHidden(true)   // the instruction names every fill
     }
 }
 
@@ -35,16 +50,18 @@ struct DisplayTestView: View {
     private var monitor: Any?
     private var index = 0
 
-    private static let colors: [NSColor] = [
-        .white, .black, .red, .green, .blue, NSColor(white: 0.5, alpha: 1),
-        NSColor(patternImage: NSImage(size: NSSize(width: 8, height: 8), flipped: false) { _ in
-            NSColor.white.setFill()
-            NSBezierPath.fill(NSRect(x: 0, y: 0, width: 8, height: 8))
-            NSColor.black.setFill()
-            NSBezierPath.fill(NSRect(x: 0, y: 0, width: 4, height: 4))
-            NSBezierPath.fill(NSRect(x: 4, y: 4, width: 4, height: 4))
-            return true
-        }),
+    static let checker = NSImage(size: NSSize(width: 8, height: 8), flipped: false) { _ in
+        NSColor.white.setFill()
+        NSBezierPath.fill(NSRect(x: 0, y: 0, width: 8, height: 8))
+        NSColor.black.setFill()
+        NSBezierPath.fill(NSRect(x: 0, y: 0, width: 4, height: 4))
+        NSBezierPath.fill(NSRect(x: 4, y: 4, width: 4, height: 4))
+        return true
+    }
+
+    /// In order; `TestPattern` previews the first six and the checker.
+    static let colors: [NSColor] = [
+        .white, .black, .red, .green, .blue, NSColor(white: 0.5, alpha: 1), NSColor(patternImage: checker),
     ]
 
     /// On the screen with Tirekick's window, so moving the window picks the display to test.

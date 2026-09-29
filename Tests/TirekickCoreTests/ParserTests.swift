@@ -245,13 +245,26 @@ final class ParserTests: XCTestCase {
         // macOS's default bash prompt has no "@"; a prompt can also precede a command other than sudo.
         for paste in ["Janes-MacBook-Pro:~ jane$ profiles show -type enrollment\n(null)\nJanes-MacBook-Pro:~ jane$ ",
                       "jane@Janes-MacBook-Pro ~ % profiles show -type enrollment\n(null)\n",
-                      "(base) jane@Janes-MacBook-Pro ~ % profiles show -type enrollment\n(null)\n"] {
+                      "(base) jane@Janes-MacBook-Pro ~ % profiles show -type enrollment\n(null)\n",
+                      // fish and Powerlevel10k prompts end in neither % nor $.
+                      "jane@Janes-MacBook-Pro ~> profiles show -type enrollment\n(null)\n",
+                      "jane@Janes-MacBook-Pro ~ ❯ profiles show -type enrollment\n(null)\n"] {
             XCTAssertEqual(Parsers.abm(pasted: paste), .couldNotCheck("(null)"), paste)
             let clean = Redact.prompts(paste)
             XCTAssertFalse(clean.contains("jane") || clean.contains("Janes"), clean)
             XCTAssertTrue(clean.hasPrefix("% profiles show -type enrollment\n"), clean)
         }
         XCTAssertEqual(Parsers.abm(pasted: "Janes-MacBook-Pro:~ jane$ "), .couldNotCheck("Nothing was pasted."))
+        for prompt in ["jane@Janes-MacBook-Pro ~ % ", "Janes-MacBook-Pro:~ jane$ ", "jane@Janes-MacBook-Pro ~> "] {
+            XCTAssertEqual(Redact.prompts(prompt + "/usr/bin/profiles show -type enrollment"), "% /usr/bin/profiles show -type enrollment")
+        }
+    }
+
+    /// A long pasted line (a list of addresses, a log) once backtracked for minutes in the prompt regex.
+    func testABMPasteLongLineIsFast() {
+        let start = Date()
+        XCTAssertEqual(Parsers.abm(pasted: String(repeating: "a@b.com,", count: 8000)), .couldNotCheck(Parsers.unrecognizedPaste))
+        XCTAssertLessThan(Date().timeIntervalSince(start), 1)
     }
 
     func testABMExcerpt() throws {

@@ -37,6 +37,16 @@ import TirekickMac
 
     var card: ReportCard? { report.map { ReportText.card($0, maskSerial: maskSerial) } }
 
+    #if DEBUG
+    /// Screenshots: `-demoScreen <name>` opens that screen on fixture output (App/Demo.swift). No command runs.
+    init() { Demo.start(self) }
+
+    func loadDemo(_ raw: RawData) {
+        self.raw = raw
+        phase = .done
+    }
+    #endif
+
     /// Going back to switch mode doesn't re-run: every verdict is computed from the same raw data.
     func start(_ mode: Mode) {
         self.mode = mode
@@ -47,6 +57,9 @@ import TirekickMac
     /// Also "Check Again". Keeps the pasted ABM result, which only Terminal can refresh.
     func runChecks() {
         guard phase != .running else { return }
+        #if DEBUG
+        if Demo.screen != nil { return }   // demo: fixture output only, never a command
+        #endif
         phase = .running
         Task {
             var fresh = await Collector.collectAll()

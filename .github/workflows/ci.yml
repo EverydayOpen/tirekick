@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+env:
+  XCODEGEN: "2.46.0"   # checksum-pinned, same pin as release.yml and beta.yml: bump all three together
+  XCODEGEN_SHA256: 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806
+
 jobs:
   # TirekickCore is Foundation-only; on Linux Package.swift defines just the Core targets.
   core-linux:
@@ -17,14 +21,14 @@ jobs:
     timeout-minutes: 20
     container: swift:6.2   # the compiler BUILD_PLAN targets (Xcode 26 ships Swift 6.2+)
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: swift build --target TirekickCore && swift test --filter TirekickCoreTests
 
   macos:
     runs-on: macos-26
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Select Xcode 26
         run: sudo xcode-select -s /Applications/Xcode_26.6.app && xcodebuild -version
@@ -33,10 +37,16 @@ jobs:
       - run: swift test
 
       # Release, universal, unsigned: the configuration release.yml archives.
+      - name: Generate project (XcodeGen, checksum-pinned)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/$XCODEGEN/xcodegen.zip"
+          echo "$XCODEGEN_SHA256  $RUNNER_TEMP/xcodegen.zip" | shasum -a 256 -c
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          test -d "$RUNNER_TEMP/xcodegen/share/xcodegen/SettingPresets"   # without them xcodegen only prints a warning
+          "$RUNNER_TEMP/xcodegen/bin/xcodegen" generate
+
       - name: Build app
         run: |
-          brew install xcodegen
-          xcodegen generate
           xcodebuild -project Tirekick.xcodeproj -scheme Tirekick -configuration Release \
             -destination 'generic/platform=macOS' ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
 
@@ -48,7 +58,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Each check prints its hits and fails. Only Sources and App are searched, so tests are exempt.
       - name: Safety greps (BUILD_PLAN §3)

@@ -71,7 +71,7 @@ public enum VerdictRules {
                          evidence: e)
         case .notAssigned:
             return Check(id: .companyAssignment, verdict: .clean, title: "Not assigned to any company",
-                         detail: "Apple reports no organization has set this Mac to enroll in its device management.", evidence: e)
+                         detail: "Terminal reported that no organization has set this Mac to enroll in its device management. On a Mac you don't control, Terminal output can be faked.", evidence: e)
         case .couldNotCheck("Nothing was pasted."):
             return Check(id: .companyAssignment, verdict: .check, title: "Only the command was pasted",
                          detail: "In Terminal, select everything the command printed, press ⌘C, then choose Paste Result.", evidence: e)

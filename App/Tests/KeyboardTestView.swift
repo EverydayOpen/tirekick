@@ -11,6 +11,7 @@ struct KeyboardTestView: View {
     @State private var ticked: Set<UInt16> = []
     @State private var down: Set<UInt16> = []
     @State private var monitor: Any?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let layoutRows = model.keyboardLayout.rows(touchBar: model.facts?.model?.touchBar ?? false)
@@ -34,7 +35,7 @@ struct KeyboardTestView: View {
                     .fixedSize()
                     Spacer()
                     Text(note)
-                        .monospacedDigit()
+                        .font(.system(.callout, design: .monospaced))
                         .foregroundStyle(.secondary)
                 }
                 GeometryReader { geometry in
@@ -46,9 +47,11 @@ struct KeyboardTestView: View {
         .onDisappear(perform: stopListening)
     }
 
+    /// The keys set into a recessed deck; the deck's corners follow the keys' (concentric).
     private func keyboard(_ rows: [[Key]], in size: CGSize) -> some View {
         let widest = CGFloat(rows.map { row in row.reduce(0) { $0 + $1.width } }.max() ?? 1)
-        let unit = min(size.width / widest, size.height / CGFloat(max(rows.count, 1)))
+        let inset = Space.xs
+        let unit = max(0, min((size.width - 2 * inset) / widest, (size.height - 2 * inset) / CGFloat(max(rows.count, 1))))
         return VStack(alignment: .leading, spacing: 0) {
             ForEach(rows.indices, id: \.self) { r in
                 HStack(spacing: 0) {
@@ -58,29 +61,53 @@ struct KeyboardTestView: View {
                 }
             }
         }
+        .padding(inset)
+        .recessedPanel(cornerRadius: unit * 0.15 + 2 + inset)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    /// Mini key-caps like a Mac's, graphite in both appearances (DESIGN.md §5.3): a face lit along its top rim over a
+    /// side wall. A registered key's face turns lime with a 1pt lime rim: lime means "registered", never "passed".
+    /// Ticked by hand is outlined, not lit, so it reads differently from a real press. A held key's face sinks onto
+    /// its wall (MOTION.md §5.5); under Reduce Motion the dimmer held fill is the only cue.
     private func keyView(_ key: Key, unit: CGFloat) -> some View {
         let isPressed = pressed.contains(key.code)
         let isTicked = !isPressed && ticked.contains(key.code)
+        let isHeld = down.contains(key.code)
+        let sinks = isHeld && !reduceMotion
         let shape = RoundedRectangle(cornerRadius: unit * 0.15, style: .continuous)
+        let wall = max(1.5, unit * 0.05)
         return Button {
             if isTicked { ticked.remove(key.code) } else if !isPressed { ticked.insert(key.code) }
         } label: {
             Text(key.label)
-                .font(.system(size: max(9, unit * 0.24)))
+                .font(.system(size: max(9, unit * 0.24), weight: isPressed ? .semibold : .medium))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .padding(.horizontal, 2)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .foregroundStyle(isPressed ? Color.white : isTicked ? Color.accentColor : Color.primary)
-                .background(shape.fill(isPressed
-                    ? AnyShapeStyle(Color.accentColor.opacity(down.contains(key.code) ? 0.7 : 1))
-                    : AnyShapeStyle(.quaternary)))
-                // Ticked by hand: outlined, not filled, so it reads differently from a real press.
-                .overlay(shape.strokeBorder(Color.accentColor, lineWidth: isTicked ? 1.5 : 0))
+                .foregroundStyle(isPressed ? Color.black : isTicked ? Brand.hiVis : Color.white.opacity(0.85))
+                .background {
+                    ZStack {
+                        shape.fill(LinearGradient(colors: [Self.capTop, Self.capBottom], startPoint: .top, endPoint: .bottom))
+                        if isPressed {
+                            shape.fill(Brand.hiVis)
+                                .overlay(shape.fill(LinearGradient(colors: [.clear, Color.black.opacity(0.1)], startPoint: .top, endPoint: .bottom)))
+                                .opacity(isHeld ? 0.7 : 1)
+                        }
+                    }
+                }
+                .overlay {
+                    if isPressed || isTicked {
+                        shape.strokeBorder(Brand.hiVis, lineWidth: isTicked ? 1.5 : 1)
+                    } else {
+                        shape.strokeBorder(LinearGradient(colors: [Color.white.opacity(0.18), Color.white.opacity(0.03)], startPoint: .top, endPoint: .bottom), lineWidth: 0.75)
+                    }
+                }
                 .contentShape(shape)
+                .offset(y: sinks ? wall - 0.5 : 0)
+                .animation(Motion.pop, value: sinks)
+                .background(shape.fill(Self.capWall).offset(y: wall))   // the key's side wall stays put; the face sinks onto it
         }
         .buttonStyle(.plain)
         .padding(2)
@@ -88,6 +115,11 @@ struct KeyboardTestView: View {
         .accessibilityLabel(key.label)
         .accessibilityValue(isPressed ? "Pressed" : isTicked ? "Ticked by hand" : "Not pressed")
     }
+
+    // DESIGN.md §5.2's dark key-cap: face #262622 → #1B1B18 on a #050504 wall.
+    private static let capTop = Color(red: 0.149, green: 0.149, blue: 0.133)
+    private static let capBottom = Color(red: 0.106, green: 0.106, blue: 0.094)
+    private static let capWall = Color(red: 0.02, green: 0.02, blue: 0.016)
 
     private func startListening() {
         guard monitor == nil else { return }

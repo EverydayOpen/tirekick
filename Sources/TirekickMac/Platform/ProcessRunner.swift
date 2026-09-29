@@ -25,6 +25,12 @@ enum ProcessRunner {
         let group = DispatchGroup()
 
         return try await withCheckedThrowingContinuation { continuation in
+            let resumed = OSAllocatedUnfairLock(initialState: false)
+            let finish: @Sendable (ProcessResult) -> Void = { result in
+                if resumed.withLock({ was in let first = !was; was = true; return first }) {
+                    continuation.resume(returning: result)
+                }
+            }
             group.enter()
             process.terminationHandler = { _ in group.leave() }
             // leave() here too: a DispatchGroup freed while entered is a libdispatch crash.
@@ -38,16 +44,20 @@ enum ProcessRunner {
                 }
             }
             DispatchQueue.global().asyncAfter(deadline: .now() + timeout) {
-                guard process.isRunning else { return }
-                timedOut.withLock { $0 = true }
-                process.terminate()
-                // A child that ignores SIGTERM would otherwise keep the caller waiting forever.
+                if process.isRunning {
+                    timedOut.withLock { $0 = true }
+                    process.terminate()
+                }
+                // A child that ignores SIGTERM, or a helper that inherited the pipe (killing the child doesn't
+                // close it), would otherwise keep the caller waiting forever. Give up without reading the sinks:
+                // their drain threads may still be writing, and they keep the group alive until the pipe closes.
                 DispatchQueue.global().asyncAfter(deadline: .now() + 5) {
                     if process.isRunning { kill(process.processIdentifier, SIGKILL) }
+                    finish(ProcessResult(status: -1, stdout: "", stderr: "", timedOut: true))
                 }
             }
             group.notify(queue: .global()) {
-                continuation.resume(returning: ProcessResult(
+                finish(ProcessResult(
                     status: process.terminationStatus, stdout: out.string, stderr: err.string,
                     timedOut: timedOut.withLock { $0 }))
             }

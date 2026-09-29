@@ -16,10 +16,12 @@ struct CameraTestView: View {
             instruction: "Check the picture is sharp and the green light next to the camera is on. Nothing is recorded or saved."
         ) {
             if let camera {
+                // The one lifted object: the picture in a dark bezel.
                 CameraPreview(session: camera.session)
                     .aspectRatio(16 / 9, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     .accessibilityLabel("Camera preview")
+                    .screenBezel(6 + Space.xs)
             } else if let problem {
                 PermissionProblem(text: problem, pane: denied ? "Privacy_Camera" : nil)
             } else {

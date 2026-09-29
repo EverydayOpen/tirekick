@@ -21,9 +21,7 @@ struct MicrophoneTestView: View {
             if let problem {
                 PermissionProblem(text: problem, pane: denied ? "Privacy_Microphone" : nil)
             } else {
-                Gauge(value: level) { Text("Input level") }
-                    .labelsHidden()
-                    .frame(maxWidth: 400)
+                LevelMeter(level: level)
             }
         }
         // Opening the test is what asks for access (BUILD_PLAN §3.7).
@@ -50,5 +48,29 @@ struct MicrophoneTestView: View {
         } catch {
             problem = "Couldn't start the microphone. Another app may be using it. Quit that app and open the test again, or choose Skip."
         }
+    }
+}
+
+/// The LED bar (DESIGN.md §5.2), set into the deck: 12 capsules that light hi-vis from the left as the microphone
+/// registers sound (lime means "registered"). Never animated; it moves only with the sound. Sized up from the spec's
+/// 4×10pt because it's this screen's one instrument.
+private struct LevelMeter: View {
+    let level: Double
+
+    var body: some View {
+        let lit = Int((level * 12).rounded())
+        HStack(spacing: 6) {
+            ForEach(0..<12, id: \.self) { i in
+                Capsule()
+                    .fill(i < lit ? Brand.hiVis : Color.primary.opacity(0.1))
+                    .overlay(Capsule().strokeBorder(Color.black.opacity(i < lit ? 0.15 : 0), lineWidth: 0.5))   // holds its edge on white
+                    .frame(width: 10, height: 32)
+            }
+        }
+        .padding(Space.l)
+        .recessedPanel(cornerRadius: 5 + Space.l)
+        .accessibilityElement()
+        .accessibilityLabel("Input level")
+        .accessibilityValue("\(Int((level * 100).rounded()))%")
     }
 }

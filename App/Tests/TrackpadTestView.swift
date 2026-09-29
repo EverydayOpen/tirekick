@@ -24,24 +24,27 @@ struct TrackpadTestView: View {
             instruction: "In the box, click, then press harder until you feel a second click (force click), then scroll with two fingers. Try the corners too."
                 + (model.facts?.specs?.isLaptop == false ? " No trackpad? Choose Skip." : "")
         ) {
-            VStack(spacing: Space.m) {
-                TrackpadArea { move in
-                    withAnimation { _ = seen.insert(move) }
-                }
-                .background(RoundedRectangle(cornerRadius: Radius.card, style: .continuous).fill(.quaternary))
-                .overlay(Text("Try it here").foregroundStyle(.secondary).allowsHitTesting(false))
-                .accessibilityLabel("Trackpad test area")
+            VStack(spacing: Space.l) {
+                // Shaped like a trackpad and set into the deck. Moves light without animating: the pad is the feedback.
+                TrackpadArea { _ = seen.insert($0) }
+                    .overlay(Text("Try it here").foregroundStyle(.secondary).allowsHitTesting(false))
+                    .aspectRatio(1.6, contentMode: .fit)
+                    .recessedPanel()
+                    .frame(maxWidth: 460)
+                    .accessibilityLabel("Trackpad test area")
 
-                HStack(spacing: Space.xl) {
+                // Lime means "registered" (the keyboard's backlight), not "passed"; the symbol changes too.
+                HStack(spacing: Space.s) {
                     ForEach(TrackpadMove.allCases, id: \.self) { move in
                         let done = seen.contains(move)
-                        Label {
-                            Text(move.title)
-                        } icon: {
-                            Image(systemName: done ? "checkmark.circle.fill" : "circle")
-                                .foregroundStyle(done ? Color.green : Color.secondary)
-                        }
-                        .accessibilityValue(done ? "Done" : "Not yet")
+                        Label(move.title, systemImage: done ? "checkmark" : "circle")
+                            .font(.callout.weight(.semibold))
+                            .foregroundStyle(done ? Color.black : Color.secondary)
+                            .padding(.horizontal, Space.s)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(done ? Brand.hiVis : Color.primary.opacity(0.06)))
+                            .overlay(Capsule().strokeBorder(Color.primary.opacity(done ? 0 : 0.12), lineWidth: 0.5))
+                            .accessibilityValue(done ? "Done" : "Not yet")
                     }
                 }
             }
