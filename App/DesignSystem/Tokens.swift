@@ -217,9 +217,10 @@ struct OnFloor<Content: View>: View {
                 content
                     .scaleEffect(x: 1, y: -1)
                     .frame(height: height * 0.45, alignment: .top).clipped()
-                    .mask { LinearGradient(colors: [.black.opacity(0.22), .clear], startPoint: .top, endPoint: .bottom) }
+                    .mask { LinearGradient(colors: [.black.opacity(0.35), .clear], startPoint: .top, endPoint: .bottom) }
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
+                    .padding(.bottom, -height * 0.25)   // the faint tail runs under the next view, only when there is a mirror
             }
         }
     }
@@ -350,7 +351,9 @@ struct StepBar: View {
             }
         }
         .padding(3)
-        .barSurface()
+        // The glass is a sibling layer under the labels, so the inverse pill stays an opaque fill, not glass content.
+        // VERIFY on the capture: pill near-white in dark, near-black in light.
+        .background { Color.clear.barSurface() }
         .animation(reduceMotion ? nil : Motion.spring(false), value: current)
         .allowsHitTesting(false)                                   // drags pass through to the window
         .accessibilityElement(children: .ignore)

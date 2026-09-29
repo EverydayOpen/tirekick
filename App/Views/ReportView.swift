@@ -8,6 +8,8 @@ import TirekickCore
 struct ReportView: View {
     @EnvironmentObject private var model: AppModel
     @State private var dealt = false
+    @State private var cardHeight: CGFloat = 0
+    private let previewScale: CGFloat = 0.78
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // Mask serial, Copy and the Save buttons are in RootView's bottom bar.
@@ -55,6 +57,10 @@ struct ReportView: View {
     private func stage(_ card: ReportCard) -> some View {
         let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
         return ReportCardView(card: card)   // the PNG itself (Export renders it): effects go around it, never inside
+            .background { GeometryReader { g in Color.clear.onAppear { cardHeight = g.size.height }.onChange(of: g.size.height) { cardHeight = $0 } } }
+            // Scaled to fit above the bottom bar, so the sheets and the laser show. VERIFY text crispness at 0.78.
+            .scaleEffect(previewScale, anchor: .top)
+            .frame(width: 560 * previewScale, height: cardHeight > 0 ? cardHeight * previewScale : nil, alignment: .top)
             .clipShape(shape)
             .overlay(shape.strokeBorder(Color.black.opacity(0.1), lineWidth: 0.5))   // paper's edge: white in every scheme
             .background(alignment: .bottom) {

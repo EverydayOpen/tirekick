@@ -56,7 +56,7 @@ struct TestsView: View {
                 .frame(height: 20)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 116, alignment: .topLeading)   // fills the bay down to the bar
         .overlay(alignment: .topTrailing) { KeyLED(lit: result.map { $0.outcome != .skipped } ?? false) }
     }
 }

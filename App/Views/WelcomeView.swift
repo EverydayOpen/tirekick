@@ -16,7 +16,6 @@ struct WelcomeView: View {
                         .frame(height: 0)
                         .offset(y: LaptopView.height + 1)
                 }
-                .padding(.bottom, -Space.xl)   // the reflection's faint tail runs under the title's top margin (VERIFY the fit)
 
             VStack(spacing: Space.xs) {
                 (Text("Kick the tires ") + Text("before you pay").foregroundColor(.secondary))
