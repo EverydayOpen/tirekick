@@ -2,15 +2,16 @@ import AppKit
 import SwiftUI
 
 /// Welcome's laptop (MOTION.md §5.3, DESIGN.md §5.3), drawn with shapes and no assets: a graphite lid, an
-/// aluminium deck and a lime-lit screen, standing on the bay's floor line. The lid opens once when it appears and
-/// the laptop turns toward the pointer. With `scanning` the lid starts open and a lime beam sweeps the screen for as
-/// long as the view exists (only while checks run). Still, and open, under Reduce Motion.
+/// aluminium deck and the app icon (the lime check) on its screen. The lid opens once when it appears. With
+/// `scanning` the lid starts open and a lime beam sweeps the screen for as long as the view exists (only while checks
+/// run). Still, and open, under Reduce Motion. Callers stand it on a `Horizon` (and Welcome on `OnFloor`, tilting).
 struct LaptopView: View {
+    /// The lid's 98pt plus the deck's 8pt: where the floor line goes.
+    static let height: CGFloat = 106
     var scanning = false
     @State private var open: Bool
     @State private var sweep = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.colorScheme) private var scheme
 
     init(scanning: Bool = false) {
         self.scanning = scanning
@@ -19,8 +20,6 @@ struct LaptopView: View {
 
     var body: some View {
         laptop
-            .modifier(HoverTilt(max: scanning ? 0 : 8))
-            .background(alignment: .bottom) { floor }
             .accessibilityHidden(true)
             .onAppear {
                 if !open { withAnimation(reduceMotion ? nil : Motion.hero.delay(0.1)) { open = true } }
@@ -52,7 +51,6 @@ struct LaptopView: View {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
                 .frame(width: 46, height: 46)
-                .shadow(color: Brand.hiVis.opacity(0.25), radius: 12)
                 .opacity(open || reduceMotion ? 1 : 0)
                 .animation(Motion.standard(reduceMotion).delay(0.45), value: open)
             if scanning && !reduceMotion {
@@ -63,27 +61,5 @@ struct LaptopView: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-    }
-
-    /// The bay's floor, still while the laptop tilts: a lime spill, one lit horizon and a contact shadow, centred
-    /// on the deck's lower edge.
-    private var floor: some View {
-        let dark = scheme == .dark
-        return ZStack {
-            Circle()
-                .fill(RadialGradient(colors: [Brand.hiVis.opacity(dark ? 0.22 : 0.35), .clear], center: .center, startRadius: 0, endRadius: 170))
-                .frame(width: 340, height: 340)
-                .scaleEffect(x: 1, y: 0.16)
-            Rectangle()
-                .fill(LinearGradient(colors: [.clear, Brand.hiVis.opacity(0.5), .clear], startPoint: .leading, endPoint: .trailing))
-                .frame(width: 440, height: 1)
-            Ellipse()
-                .fill(Color.black.opacity(dark ? 0.6 : 0.3))
-                .frame(width: 196, height: 7)
-                .blur(radius: 4)
-                .offset(y: 2)
-        }
-        .frame(height: 0)
-        .allowsHitTesting(false)
     }
 }

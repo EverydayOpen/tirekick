@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>{{title}}</title>
 <meta name="description" content="{{description}}">
@@ -85,7 +85,7 @@
       </div>
     </div>
     <p class="official"><svg aria-hidden="true"><use href="#i-check"/></svg><span>The only official site is {{baseURL}}. Downloads come only from github.com/{{releasesRepo}}/releases.</span></p>
-    <p class="fine">© {{year}} {{owner}}. {{name}} is free and open source under the MIT License.</p>
+    <p class="fine"><a class="tag" href="/changelog/">{{version}}</a>© {{year}} {{owner}}. {{name}} is free and open source under the MIT License.</p>
     <p class="fine">Apple, Mac, MacBook, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. {{name}} is not affiliated with or endorsed by Apple Inc.</p>
   </div>
 </footer>

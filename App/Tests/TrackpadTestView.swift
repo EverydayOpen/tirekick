@@ -42,7 +42,8 @@ struct TrackpadTestView: View {
                             .foregroundStyle(done ? Color.black : Color.secondary)
                             .padding(.horizontal, Space.s)
                             .padding(.vertical, 6)
-                            .background(Capsule().fill(done ? Brand.hiVis : Color.primary.opacity(0.08)))
+                            .background(Capsule().fill(done ? Brand.hiVis : Color.primary.opacity(0.06)))
+                            .overlay(Capsule().strokeBorder(Color.primary.opacity(done ? 0 : 0.12), lineWidth: 0.5))
                             .accessibilityValue(done ? "Done" : "Not yet")
                     }
                 }

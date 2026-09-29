@@ -36,9 +36,7 @@ private struct TestPattern: View {
         }
         .frame(width: 240, height: 150)
         .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-        .padding(Space.xs)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(white: 0.08)))
-        .lifted()
+        .screenBezel(4 + Space.xs)
         .accessibilityHidden(true)   // the instruction names every fill
     }
 }

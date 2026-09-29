@@ -32,6 +32,7 @@ enum Demo {
         case .keyboard:
             model.step = .tests
             model.openTest = .keyboard
+            press(model, 45)
         case .report:
             model.step = .report
             pass(model, HardwareTest.allCases)
@@ -43,6 +44,27 @@ enum Demo {
         let keys = Set(model.keyboardLayout.rows(touchBar: model.facts?.model?.touchBar ?? false).joined().map(\.code)).count
         for test in tests {
             model.finish(test, TestResult(.passed, note: test == .keyboard ? "\(keys) of \(keys) keys" : nil))
+        }
+    }
+
+    /// Partway through the keyboard test ("45 of 77 keys"), so the capture shows lit keys: the first keys in reading
+    /// order as key events posted to this app's own queue, where the test's local monitor reads them like real presses.
+    /// Never Tab, Space or Esc, which act once lit (Esc a second time skips the test).
+    @MainActor private static func press(_ model: AppModel, _ count: Int) {
+        Task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)   // the test starts listening when it appears
+            guard model.openTest == .keyboard else { return }
+            let codes = model.keyboardLayout.rows(touchBar: model.facts?.model?.touchBar ?? false).joined().map(\.code)
+            for code in codes.filter({ ![0x30, 0x31, 0x35].contains($0) }).prefix(count) {
+                for type in [NSEvent.EventType.keyDown, .keyUp] {
+                    guard let event = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [],
+                                                       timestamp: ProcessInfo.processInfo.systemUptime,
+                                                       windowNumber: NSApp.keyWindow?.windowNumber ?? 0, context: nil,
+                                                       characters: "", charactersIgnoringModifiers: "",
+                                                       isARepeat: false, keyCode: code) else { continue }
+                    NSApp.postEvent(event, atStart: false)
+                }
+            }
         }
     }
 

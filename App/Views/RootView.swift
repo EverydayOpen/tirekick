@@ -27,7 +27,7 @@ struct RootView: View {
                 .ignoresSafeArea(.container, edges: .top)
             }
         }
-        .background { Bay() }
+        .background { Bay(step: model.step) }
         .animation(Motion.standard(reduceMotion), value: model.step)
         .animation(Motion.standard(reduceMotion), value: model.openTest)
     }

@@ -21,10 +21,11 @@ final class PlatformTests: XCTestCase {
         XCTAssertLessThan(Date().timeIntervalSince(start), 10)
     }
 
-    /// The backgrounded sleep inherits the pipe, so killing the direct child never closes it.
+    /// The backgrounded sleep inherits the pipe and ignores SIGTERM, so killing the direct child never closes it.
+    /// Without the trap it died with the child on CI (0.52 s) and this test never reached the give-up path.
     func testTimeoutReturnsWhileAHelperHoldsThePipe() async throws {
         let start = Date()
-        let result = try await ProcessRunner.run("/bin/sh", ["-c", "sleep 30 & sleep 30"], timeout: 0.5)
+        let result = try await ProcessRunner.run("/bin/sh", ["-c", "trap '' TERM; sleep 30 & sleep 30"], timeout: 0.5)
         XCTAssertTrue(result.timedOut)
         XCTAssertLessThan(Date().timeIntervalSince(start), 10)
     }

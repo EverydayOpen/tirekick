@@ -1,6 +1,8 @@
 import SwiftUI
 import TirekickCore
 
+/// The verdict on the bay without a box, then the checks as readout rows in one porcelain surface, then the specs in
+/// another (DESIGN.md §5.3). The flip-ins and the checking beam are MOTION §5.4's.
 struct ChecksView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -11,36 +13,53 @@ struct ChecksView: View {
     var body: some View {
         if let facts = model.facts {
             let checks = model.checks
-            Form {
-                Section { banner(checks) }
+            ScrollView {
+                VStack(alignment: .leading, spacing: Space.l) {
+                    header(checks)
 
-                Section("Checks") {
-                    ForEach(checks.prefix(revealed)) { check in
-                        CheckRow(check: check)
-                            .transition(.flip(reduceMotion))
-                    }
-                }
-
-                Section(model.mode == .buying ? "What you're buying" : "This Mac") {
-                    ForEach(ReportText.specRows(facts, maskSerial: false), id: \.label) { row in
-                        LabeledContent(row.label) { Text(row.value).monospacedDigit() }
-                    }
-                    if model.mode == .buying {
-                        Picker("Matches the listing?", selection: $model.listingMatches) {
-                            Text("Yes").tag(Bool?.some(true))
-                            Text("No").tag(Bool?.some(false))
+                    section("Checks") {
+                        ForEach(checks.prefix(revealed)) { check in
+                            CheckRow(check: check, first: check.id == checks.first?.id)
+                                .transition(.flip(reduceMotion))
                         }
-                        .pickerStyle(.segmented)
                     }
+
+                    section(model.mode == .buying ? "What you're buying" : "This Mac") {
+                        ForEach(Array(ReportText.specRows(facts, maskSerial: false).enumerated()), id: \.element.label) { i, row in
+                            HStack(alignment: .firstTextBaseline, spacing: Space.s) {
+                                Text(row.label).foregroundStyle(.secondary)
+                                Spacer(minLength: Space.s)
+                                Text(row.value).font(.callout.monospaced()).multilineTextAlignment(.trailing)
+                            }
+                            .readoutRow(first: i == 0, inset: Space.m)
+                            .accessibilityElement(children: .combine)
+                        }
+                        if model.mode == .buying {
+                            HStack {
+                                Text("Matches the listing?").accessibilityHidden(true)   // the picker carries the label
+                                Spacer(minLength: Space.s)
+                                Picker("Matches the listing?", selection: $model.listingMatches) {
+                                    Text("Yes").tag(Bool?.some(true))
+                                    Text("No").tag(Bool?.some(false))
+                                }
+                                .pickerStyle(.segmented)
+                                .labelsHidden()
+                                .fixedSize()
+                            }
+                            .readoutRow(first: false, inset: Space.m)
+                        }
+                    }
+                    .textSelection(.enabled)
                 }
-                .textSelection(.enabled)
+                .padding(.horizontal, Space.xxl)
+                .padding(.top, Space.s)
+                .padding(.bottom, Space.l)
             }
-            .formStyle(.grouped)
-            .scrollContentBackground(.hidden)   // the bay shows between the sections
             .task { try? await reveal(checks.count) }
         } else {
             VStack(spacing: Space.xxl) {
                 LaptopView(scanning: true)
+                    .background(alignment: .bottom) { Horizon(tint: Brand.hiVis, width: 440, soft: false).frame(height: 0) }
                 HStack(spacing: Space.xs) {
                     ProgressView().controlSize(.small)
                     Text("Checking this Mac…").foregroundStyle(.secondary)
@@ -51,25 +70,23 @@ struct ChecksView: View {
         }
     }
 
-    /// A new verdict turns down over the old one like a split-flap (MOTION.md §5.4). The well sits under a white key
-    /// light, never one in the verdict's colour: severity never glows.
-    private func banner(_ checks: [Check]) -> some View {
+    /// The verdict sits on the bay, unboxed: a System Settings tile, the word, the count in mono. A new verdict turns
+    /// down over the old one like a split-flap (MOTION.md §5.4). The tile never glows: severity never does.
+    private func header(_ checks: [Check]) -> some View {
         let verdict = Verdict.overall(checks.map(\.verdict))
-        return HStack(spacing: Space.s) {
+        return HStack(spacing: Space.m) {
             ZStack(alignment: .leading) {
                 HStack(spacing: Space.m) {
-                    VerdictIcon(verdict: verdict, size: 28, showsWord: false)
-                        .well(verdict.color, size: 56)
-                        .background {
-                            RadialGradient(colors: [Color.white.opacity(0.12), .clear], center: .center, startRadius: 0, endRadius: 48)
-                                .frame(width: 96, height: 96)
-                        }
+                    VerdictIcon(verdict: verdict, size: 60, showsWord: false, tile: true)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: Space.xxs) {
                         Text(verdict.bannerTitle(for: model.mode))
-                            .font(.system(size: 26, weight: .bold))
+                            .font(.system(size: 34, weight: .bold))
+                            .tracking(-0.8)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)                 // "Couldn't check everything" beside Check Again
                         Text(ReportText.summaryLine(checks))
-                            .font(.callout)
+                            .font(.system(size: 12, design: .monospaced))
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -84,9 +101,23 @@ struct ChecksView: View {
             }
             Button("Check Again") { model.runChecks() }
                 .buttonStyle(.bordered)
+                .capsuleBorder()                                     // Compat: a capsule on macOS 14+
                 .disabled(model.phase == .running)
         }
-        .padding(.vertical, Space.xs)
+    }
+
+    /// A small-caps header over one porcelain surface of hairline-separated rows.
+    private func section<Content: View>(_ title: String, @ViewBuilder _ rows: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: Space.xs) {
+            Text(title)
+                .font(.system(size: 12, weight: .semibold).smallCaps())   // VERIFY small caps with SF
+                .tracking(0.5)
+                .foregroundStyle(.secondary)
+                .padding(.leading, Space.m)
+                .accessibilityAddTraits(.isHeader)
+            VStack(alignment: .leading, spacing: 0, content: rows)
+                .surface(16)
+        }
     }
 
     private func reveal(_ count: Int) async throws {
@@ -103,18 +134,34 @@ struct ChecksView: View {
     }
 }
 
-/// Verdict, the fact, what it means; the commands and raw output behind Details.
+private extension View {
+    /// A row of a surface: padded, with a 0.5pt hairline above it (from `inset`, where its text starts) unless first.
+    func readoutRow(first: Bool, inset: CGFloat) -> some View {
+        padding(.horizontal, Space.m)
+            .padding(.vertical, Space.s)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(alignment: .top) {
+                if !first {
+                    Rectangle().fill(Color.primary.opacity(0.1)).frame(height: 0.5).padding(.leading, inset).allowsHitTesting(false)
+                }
+            }
+    }
+}
+
+/// A readout row: a 3pt status tick on the leading edge, the verdict symbol, the fact and what it means, then the
+/// tag over a mono readout. The commands and raw output behind Details.
 private struct CheckRow: View {
     let check: Check
+    let first: Bool
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Space.s) {
+        HStack(alignment: .firstTextBaseline, spacing: Space.xs) {
             VerdictIcon(verdict: check.verdict, showsWord: false)
-            VStack(alignment: .leading, spacing: Space.xxs) {
-                Text(check.title).fontWeight(.medium)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(check.title).font(.system(size: 13, weight: .semibold))
                 Text(check.detail)
-                    .font(.callout)
+                    .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if check.id == .companyAssignment && needsHandoff {
@@ -127,14 +174,44 @@ private struct CheckRow: View {
                         }
                     }
                     .font(.callout)
+                    .controlSize(.small)
                 }
             }
             Spacer(minLength: Space.xs)
-            // VerdictIcon already speaks the word.
-            Tag(text: check.verdict.word, tint: check.verdict.color)
+            // VerdictIcon already speaks the word, and the title already says the readout.
+            VStack(alignment: .trailing, spacing: Space.xxs) {
+                Tag(text: check.verdict.word, tint: check.verdict.color)
+                if let readout {
+                    Text(readout).font(.system(size: 12, design: .monospaced)).foregroundStyle(.secondary)
+                }
+            }
+            .accessibilityHidden(true)
+        }
+        // 16pt padding + the 16pt symbol + 8pt: the hairline starts where the text does.
+        .readoutRow(first: first, inset: 40)
+        .overlay(alignment: .leading) {
+            // Inset 4pt so the first and last ticks stay inside the surface's corner curve.
+            Capsule().fill(check.verdict.color).frame(width: 3).padding(.vertical, 10).padding(.leading, Space.xxs)
                 .accessibilityHidden(true)
         }
-        .padding(.vertical, Space.xxs)
+    }
+
+    /// The fact as a spec-sheet readout ("88%", "Off"), from the same Facts as the title; nil where only the title
+    /// can say it honestly.
+    private var readout: String? {
+        guard let facts = model.facts else { return nil }
+        switch check.id {
+        case .activationLock:
+            switch facts.specs?.activationLock {
+            case .enabled?: return "On"
+            case .disabled?: return "Off"
+            default: return nil
+            }
+        case .battery: return facts.battery?.maximumCapacityPercent.map { "\($0)%" }
+        case .storageHealth: return facts.storage?.smartStatus
+        case .fileVault: return facts.fileVaultOn.map { $0 ? "On" : "Off" }
+        default: return nil
+        }
     }
 
     /// The Terminal steps stay until the paste gives an answer.

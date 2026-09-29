@@ -35,13 +35,15 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 PLACEHOLDER = re.compile("REPLACE_ME|OWNER")
 # Body of /download/ until it can redirect (build()); check() still needs its one <h1>.
-SOON = ('<article class="wrap narrow prose center"><div class="panel"><div class="obj"><img class="icon" src="/icon.png" '
-        'width="112" height="112" alt="{{name}} app icon"></div></div><h1>Coming soon</h1><p>{{name}} 1.0 isn\'t available '
+SOON = ('<div class="band bay"><div class="podium"><i class="floor" aria-hidden="true"></i><i class="laser" aria-hidden="true">'
+        '</i><img class="icon" src="/icon.png" width="128" height="128" alt="{{name}} app icon"></div></div>'
+        '<article class="wrap narrow prose center"><h1>Coming soon</h1><p class="lede">{{name}} 1.0 isn\'t available '
         'yet. The <a href="/changelog/">changelog</a> and its <a href="/feed.xml">RSS feed</a> will say when it is.</p>'
         '</article>\n')
 # layout.html's Content-Security-Policy allows only same-origin files, so no page may use inline code.
-CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'"
-BUDGET = {"styles.css": 40_000, "motion.js": 5_000, "index.html": 30_000}   # bytes (docs/MOTION.md §6.1)
+CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'"
+# Bytes, for each built file matching the pattern (docs/DESIGN.md §8).
+BUDGET = {"styles.css": 40_000, "motion.js": 5_000, "index.html": 36_000, "fonts/*.woff2": 32_000, "shots/*": 110_000}
 
 
 class Raw(str):
@@ -123,6 +125,7 @@ def build(out, site):
     entries = changelog.parse(str(log)) if log.exists() else []
     v = values(site)
     v["changelog"] = changelog_html(entries, site["name"])
+    v["version"] = f"Version {entries[0]['version']}" if entries else "1.0 coming soon"
     layout = (SITE / "src" / "layout.html").read_text(encoding="utf-8")
     prefix = urlsplit(site["baseURL"]).path   # "/tirekick" on a project site, "" on a custom domain
 
@@ -151,6 +154,9 @@ def build(out, site):
         dest = out / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         text = re.sub(r'\b(href|src)="/(?!/)', rf'\1="{prefix}/', fill(layout, page, "layout.html"))
+        # srcset="/a.jpg 1x, /b.jpg 2x": every candidate gets the prefix too.
+        text = re.sub(r'\bsrcset="([^"]*)"',
+                      lambda m: 'srcset="' + re.sub(r'(^|,\s*)/(?!/)', rf'\1{prefix}/', m[1]) + '"', text)
         dest.write_text(text, encoding="utf-8", newline="\n")
 
     (out / "feed.xml").write_text(feed(v, entries), encoding="utf-8", newline="\n")
@@ -186,6 +192,7 @@ class Page(HTMLParser):
         if "id" in a:
             self.ids.add(a["id"])
         self.links += [a[k] for k in ("href", "src") if a.get(k)]
+        self.links += [c.split()[0] for c in (a.get("srcset") or "").split(",") if c.strip()]
         if tag == "meta" and (a.get("name") or a.get("property")):
             self.meta[a.get("name") or a.get("property")] = a.get("content") or ""
         if tag == "link" and a.get("rel") == "canonical":
@@ -292,9 +299,10 @@ def check(out, site, v):
         if PLACEHOLDER.search(str(val)) and key not in site.get("placeholders", []):
             errors.append(f"site.json: {key} is a placeholder but not listed in \"placeholders\"")
     errors += contrast((out / "styles.css").read_text(encoding="utf-8"))
-    for name, cap in BUDGET.items():
-        if (out / name).stat().st_size > cap:
-            errors.append(f"{name}: {(out / name).stat().st_size} bytes, over its {cap} byte budget")
+    for pattern, cap in BUDGET.items():
+        for f in out.glob(pattern):
+            if f.stat().st_size > cap:
+                errors.append(f"{f.relative_to(out).as_posix()}: {f.stat().st_size} bytes, over its {cap} byte budget")
     return errors, len(parsed)
 
 

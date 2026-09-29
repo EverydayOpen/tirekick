@@ -1,6 +1,7 @@
-# Window captures of every screen, light and dark, as the `screens` artifact (PNG), for design review and a later
-# "See it" gallery (docs/DESIGN.md §9). A Debug build opens each screen with `-demoScreen <name>` (App/Demo.swift):
-# fixture output from Tests/TirekickCoreTests/Fixtures, no command runs. Nothing is committed or published from here.
+# Window captures of every screen, light and dark, as the `screens` artifact: <screen>-<look>.png with the window
+# shadow for design review, and shots/<screen>-<look>.jpg without it for the site's real-screens strip (docs/DESIGN.md
+# §2.6). A Debug build opens each screen with `-demoScreen <name>` (App/Demo.swift): fixture output from
+# Tests/TirekickCoreTests/Fixtures, no command runs. Nothing is committed or published from here.
 name: screens
 
 on:
@@ -65,7 +66,8 @@ jobs:
           EOF
           xcrun swiftc "$RUNNER_TEMP/window.swift" -o "$RUNNER_TEMP/window"
           app="build/dd/Build/Products/Debug/$APP.app"
-          mkdir screens
+          mkdir -p screens/shots
+          sips --formats | grep -i webp || echo "sips lists no WebP"   # DESIGN.md §2.6 VERIFY: prefer WebP if writable
           for look in light dark; do
             for screen in welcome checks checksWalkAway tests keyboard report; do
               open -n "$app" --args -demoScreen "$screen" -demoAppearance "$look"
@@ -78,6 +80,12 @@ jobs:
               fi
               sleep 3   # entrance animations
               screencapture -x -l"$id" "screens/$screen-$look.png"
+              # The site's strip (docs/DESIGN.md §2.6): no shadow, JPEG, at most 110 KB. The lead picks and commits.
+              screencapture -x -o -l"$id" "$RUNNER_TEMP/flat.png"
+              shot="screens/shots/$screen-$look.jpg"
+              sips -s format jpeg -s formatOptions 82 "$RUNNER_TEMP/flat.png" --out "$shot" > /dev/null
+              size=$(stat -f %z "$shot")
+              [ "$size" -le 112640 ] || echo "::warning::$shot is $size bytes, over the site's 110 KB cap"
               pkill -x "$APP"
               while pgrep -x "$APP" > /dev/null; do sleep 0.2; done
             done

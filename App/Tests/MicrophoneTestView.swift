@@ -51,24 +51,24 @@ struct MicrophoneTestView: View {
     }
 }
 
-/// A segmented meter set into the deck: segments light hi-vis as the microphone registers sound (lime means
-/// "registered"). Never animated; it moves only with the sound.
+/// The LED bar (DESIGN.md §5.2), set into the deck: 12 capsules that light hi-vis from the left as the microphone
+/// registers sound (lime means "registered"). Never animated; it moves only with the sound. Sized up from the spec's
+/// 4×10pt because it's this screen's one instrument.
 private struct LevelMeter: View {
     let level: Double
 
     var body: some View {
-        let segments = 24
-        let lit = Int((level * Double(segments)).rounded())
-        HStack(spacing: 3) {
-            ForEach(0..<segments, id: \.self) { i in
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .fill(i < lit ? Brand.hiVis : Color.primary.opacity(0.12))
+        let lit = Int((level * 12).rounded())
+        HStack(spacing: 6) {
+            ForEach(0..<12, id: \.self) { i in
+                Capsule()
+                    .fill(i < lit ? Brand.hiVis : Color.primary.opacity(0.1))
+                    .overlay(Capsule().strokeBorder(Color.black.opacity(i < lit ? 0.15 : 0), lineWidth: 0.5))   // holds its edge on white
+                    .frame(width: 10, height: 32)
             }
         }
-        .frame(height: 28)
-        .padding(Space.s)
-        .recessedPanel(cornerRadius: 2 + Space.s)
-        .frame(maxWidth: 440)
+        .padding(Space.l)
+        .recessedPanel(cornerRadius: 5 + Space.l)
         .accessibilityElement()
         .accessibilityLabel("Input level")
         .accessibilityValue("\(Int((level * 100).rounded()))%")

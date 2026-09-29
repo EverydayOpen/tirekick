@@ -18,13 +18,15 @@ struct SpeakersTestView: View {
                 + (model.isAllInOne == false ? " Mac mini, Mac Studio and Mac Pro have one built-in speaker; just listen for crackle or buzz." : "")
         ) {
             VStack(spacing: Space.l) {
+                // Three key-caps set into the deck; concentric: the caps' 14pt radius plus the deck's padding.
                 HStack(spacing: Space.s) {
-                    button("Play Left", .left)
-                    button("Play Both", .both)
-                    button("Play Right", .right)
+                    key("Play Left", .left)
+                    key("Play Both", .both)
+                    key("Play Right", .right)
                 }
                 .padding(Space.s)
-                .recessedPanel()
+                .recessedPanel(cornerRadius: 14 + Space.s)
+                .frame(maxWidth: 460)
                 if let failure {
                     Text(failure).foregroundStyle(.secondary)
                 }
@@ -33,19 +35,24 @@ struct SpeakersTestView: View {
         .onDisappear { tone?.stop() }
     }
 
-    private func button(_ title: String, _ channel: ToneGenerator.Channel) -> some View {
+    /// A key-cap whose LED is lit while its tone plays. No level meter: ToneGenerator reports none, and the
+    /// feedback is the sound itself (MOTION.md §5.7).
+    private func key(_ title: String, _ channel: ToneGenerator.Channel) -> some View {
         let isPlaying = playing == channel
         return Button { toggle(channel) } label: {
-            Label {
-                Text(isPlaying ? "Stop" : title)
-            } icon: {
+            VStack(spacing: Space.xs) {
                 // Left's speaker faces left.
                 Image(systemName: isPlaying ? "stop.fill" : "speaker.wave.2")
+                    .font(.system(size: 20, weight: .medium))
                     .scaleEffect(x: channel == .left && !isPlaying ? -1 : 1, y: 1)
+                    .frame(height: 24)
+                    .accessibilityHidden(true)
+                Text(isPlaying ? "Stop" : title).font(.system(size: 13, weight: .semibold))
             }
-            .frame(minWidth: 110)
+            .frame(maxWidth: .infinity)
+            .overlay(alignment: .topTrailing) { KeyLED(lit: isPlaying) }
         }
-        .controlSize(.large)
+        .buttonStyle(KeyCapStyle())
     }
 
     private func toggle(_ channel: ToneGenerator.Channel) {
