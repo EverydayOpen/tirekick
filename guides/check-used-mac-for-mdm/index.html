@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>How to check a used Mac for MDM and company assignment before you buy</title>
 <meta name="description" content="Two Terminal commands tell you whether a used Mac is managed by an organization, or assigned to a company that will take it back after it&#x27;s erased. What each result means, and why an MDM bypass doesn&#x27;t fix it.">
 <link rel="canonical" href="https://everydayopen.github.io/tirekick/guides/check-used-mac-for-mdm/">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0a09">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Tirekick">
 <meta property="og:title" content="How to check a used Mac for MDM and company assignment before you buy">
@@ -23,25 +24,31 @@
 <link rel="apple-touch-icon" href="/tirekick/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Tirekick changelog" href="/tirekick/feed.xml">
 <link rel="stylesheet" href="/tirekick/styles.css">
+<script src="/tirekick/motion.js" defer></script>
 
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M4.5 19.5h15"/></symbol>
+</svg>
 <header class="site-header">
-  <nav class="wrap nav" aria-label="Main">
+  <nav class="nav" aria-label="Main">
     <a class="brand" href="/tirekick/"><img src="/tirekick/favicon.png" width="28" height="28" alt=""><span>Tirekick</span></a>
     <ul class="nav-links">
       <li><a href="/tirekick/#checks">What it checks</a></li>
+      <li><a href="/tirekick/#tests">Tests</a></li>
       <li><a href="/tirekick/#guides">Guides</a></li>
-      <li><a href="/tirekick/#privacy">Privacy</a></li>
-      <li><a href="/tirekick/support/">Support</a></li>
+      <li><a href="/tirekick/#faq">FAQ</a></li>
     </ul>
+    <a class="button secondary small" href="https://github.com/EverydayOpen/tirekick">Source</a>
     <a class="button small" href="/tirekick/download/">Download</a>
   </nav>
 </header>
 <main id="main" tabindex="-1">
 <article class="wrap narrow prose guide">
-  <p class="eyebrow">Guide · Updated September 2026 · macOS 13 to 27</p>
+  <p class="eyebrow"><b>G1</b> · Guide · Updated September 2026 · macOS 13 to 27</p>
   <h1>How to check a used Mac for MDM and company assignment before you buy</h1>
 
   <div class="summary">
@@ -49,7 +56,7 @@
     <p>A company can hold on to a Mac in two ways, and you need to check both before you pay:</p>
     <ol>
       <li><b>Managed now.</b> Open Terminal and run <code>profiles status -type enrollment</code>. Both lines should end in <code>No</code>.</li>
-      <li><b>Assigned to the company</b>, even when nothing is managed right now. Run <code>sudo profiles show -type enrollment</code> with the Mac online. “Client is not DEP enabled.” means Apple reports no organization has set it to enroll in its device management. An <code>OrganizationName</code> means one has.</li>
+      <li><b>Assigned to the company</b>, even when nothing is managed right now. Run <code>sudo profiles show -type enrollment</code> with the Mac online. “Client is not DEP enabled.” means Apple reports no organization has set it to enroll in its device management. On a Mac you don't control, Terminal output can be faked. Running it from a local account you created yourself lowers that risk but doesn't remove it, because some Terminal settings apply to every account. An <code>OrganizationName</code> means one has.</li>
     </ol>
     <p>If either one names an organization, walk away unless it's your employer's Mac. Only that organization can release it, and no “MDM bypass” changes that.</p>
   </div>
@@ -80,7 +87,7 @@
   <pre><code>sudo profiles show -type enrollment</code></pre>
   <p>Type the Mac's administrator password when asked (it doesn't show as you type).</p>
   <ul>
-    <li><code>Error fetching Device Enrollment configuration: Client is not DEP enabled.</code> Apple reports no organization has set this Mac to enroll in its device management. Good.</li>
+    <li><code>Error fetching Device Enrollment configuration: Client is not DEP enabled.</code> Apple reports no organization has set this Mac to enroll in its device management. Good. On a Mac you don't control, Terminal output can be faked. Running it from a local account you created yourself lowers that risk but doesn't remove it, because some Terminal settings apply to every account.</li>
     <li><code>Device Enrollment configuration:</code> followed by a block with <code>OrganizationName = …</code> The Mac is assigned to that organization. Walk away, and tell the seller who it belongs to.</li>
     <li>An error that mentions the <b>cloud configuration server</b>, or anything else: the check didn't work, usually because the Mac is offline. Connect and try again. Don't read an error as “not assigned”.</li>
   </ul>
@@ -146,7 +153,8 @@
         </ul>
       </div>
     </div>
-    <p class="fine">© 2026 EverydayOpen. Tirekick is free and open source under the MIT License.</p>
+    <p class="official"><svg aria-hidden="true"><use href="#i-check"/></svg><span>The only official site is https://everydayopen.github.io/tirekick. Downloads come only from github.com/EverydayOpen/tirekick/releases.</span></p>
+    <p class="fine"><a class="tag" href="/tirekick/changelog/">1.0 coming soon</a>© 2026 EverydayOpen. Tirekick is free and open source under the MIT License.</p>
     <p class="fine">Apple, Mac, MacBook, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Tirekick is not affiliated with or endorsed by Apple Inc.</p>
   </div>
 </footer>

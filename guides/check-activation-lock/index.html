@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>How to check Activation Lock on a used Mac before you buy</title>
 <meta name="description" content="Where macOS shows Activation Lock status, which Macs have it, what the seller must do before you pay, and why nobody but the owner can remove it.">
 <link rel="canonical" href="https://everydayopen.github.io/tirekick/guides/check-activation-lock/">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0a09">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Tirekick">
 <meta property="og:title" content="How to check Activation Lock on a used Mac before you buy">
@@ -23,25 +24,31 @@
 <link rel="apple-touch-icon" href="/tirekick/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Tirekick changelog" href="/tirekick/feed.xml">
 <link rel="stylesheet" href="/tirekick/styles.css">
+<script src="/tirekick/motion.js" defer></script>
 
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M4.5 19.5h15"/></symbol>
+</svg>
 <header class="site-header">
-  <nav class="wrap nav" aria-label="Main">
+  <nav class="nav" aria-label="Main">
     <a class="brand" href="/tirekick/"><img src="/tirekick/favicon.png" width="28" height="28" alt=""><span>Tirekick</span></a>
     <ul class="nav-links">
       <li><a href="/tirekick/#checks">What it checks</a></li>
+      <li><a href="/tirekick/#tests">Tests</a></li>
       <li><a href="/tirekick/#guides">Guides</a></li>
-      <li><a href="/tirekick/#privacy">Privacy</a></li>
-      <li><a href="/tirekick/support/">Support</a></li>
+      <li><a href="/tirekick/#faq">FAQ</a></li>
     </ul>
+    <a class="button secondary small" href="https://github.com/EverydayOpen/tirekick">Source</a>
     <a class="button small" href="/tirekick/download/">Download</a>
   </nav>
 </header>
 <main id="main" tabindex="-1">
 <article class="wrap narrow prose guide">
-  <p class="eyebrow">Guide · Updated September 2026 · macOS 13 to 27</p>
+  <p class="eyebrow"><b>G2</b> · Guide · Updated September 2026 · macOS 13 to 27</p>
   <h1>How to check Activation Lock on a used Mac before you buy</h1>
 
   <div class="summary">
@@ -124,7 +131,8 @@
         </ul>
       </div>
     </div>
-    <p class="fine">© 2026 EverydayOpen. Tirekick is free and open source under the MIT License.</p>
+    <p class="official"><svg aria-hidden="true"><use href="#i-check"/></svg><span>The only official site is https://everydayopen.github.io/tirekick. Downloads come only from github.com/EverydayOpen/tirekick/releases.</span></p>
+    <p class="fine"><a class="tag" href="/tirekick/changelog/">1.0 coming soon</a>© 2026 EverydayOpen. Tirekick is free and open source under the MIT License.</p>
     <p class="fine">Apple, Mac, MacBook, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Tirekick is not affiliated with or endorsed by Apple Inc.</p>
   </div>
 </footer>
