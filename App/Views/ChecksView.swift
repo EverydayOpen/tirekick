@@ -149,7 +149,7 @@ private extension View {
 }
 
 /// A readout row: a 3pt status tick on the leading edge, the verdict symbol, the fact and what it means, then the
-/// tag over a mono readout. The commands and raw output behind Details.
+/// mono readout, then the tag. The commands and raw output behind Details.
 private struct CheckRow: View {
     let check: Check
     let first: Bool
@@ -168,10 +168,13 @@ private struct CheckRow: View {
                     ABMHandoffView().padding(.vertical, Space.xs)
                 }
                 if !check.evidence.isEmpty {
-                    DisclosureGroup("Details") {
+                    DisclosureGroup {
                         VStack(alignment: .leading, spacing: Space.m) {
                             ForEach(check.evidence, id: \.self) { EvidenceView(evidence: $0) }
                         }
+                    } label: {
+                        // Secondary on the label only: the commands and their output stay primary (terminal()).
+                        Text("Details").foregroundStyle(.secondary)
                     }
                     .font(.callout)
                     .controlSize(.small)
@@ -179,11 +182,11 @@ private struct CheckRow: View {
             }
             Spacer(minLength: Space.xs)
             // VerdictIcon already speaks the word, and the title already says the readout.
-            VStack(alignment: .trailing, spacing: Space.xxs) {
-                Tag(text: check.verdict.word, tint: check.verdict.color)
+            HStack(alignment: .firstTextBaseline, spacing: Space.xs) {
                 if let readout {
                     Text(readout).font(.system(size: 12, design: .monospaced)).foregroundStyle(.secondary)
                 }
+                Tag(text: check.verdict.word, tint: check.verdict.color)
             }
             .accessibilityHidden(true)
         }

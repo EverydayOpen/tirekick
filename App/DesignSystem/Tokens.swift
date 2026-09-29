@@ -112,7 +112,7 @@ struct Bay: View {
                     LinearGradient(colors: [Color(red: 0.075, green: 0.075, blue: 0.07), Bay.floor(true)], startPoint: .top, endPoint: .bottom)
                 }
                 GeometryReader { g in
-                    RadialGradient(colors: [Color(red: 1, green: 0.94, blue: 0.82).opacity(dark ? 0.06 : 0.5), .clear],   // sodium white
+                    RadialGradient(colors: [Color(red: 1, green: 0.94, blue: 0.82).opacity(dark ? 0.06 : 0.28), .clear],   // sodium white
                                    center: .center, startRadius: 0, endRadius: 360)
                         .frame(width: 720, height: 720)
                         .position(x: g.size.width * light.x, y: g.size.height * light.y)
@@ -206,6 +206,7 @@ struct OnFloor<Content: View>: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
+        let mirror = reduceTransparency ? 0 : height * 0.45
         VStack(spacing: 2) {
             content
                 .background(alignment: .bottom) {
@@ -216,13 +217,14 @@ struct OnFloor<Content: View>: View {
             if !reduceTransparency {
                 content
                     .scaleEffect(x: 1, y: -1)
-                    .frame(height: height * 0.45, alignment: .top).clipped()
-                    .mask { LinearGradient(colors: [.black.opacity(0.35), .clear], startPoint: .top, endPoint: .bottom) }
+                    .frame(height: mirror, alignment: .top).clipped()
+                    .mask { LinearGradient(colors: [.black.opacity(0.5), .clear], startPoint: .top, endPoint: .bottom) }
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
-                    .padding(.bottom, -height * 0.25)   // the faint tail runs under the next view, only when there is a mirror
             }
         }
+        // Pinned: on CI the mirror collapsed to 0pt and the old negative padding pulled the next view over the laptop's base.
+        .frame(height: height + 2 + mirror, alignment: .top)
     }
 }
 
@@ -337,17 +339,22 @@ struct StepBar: View {
     let current: AppModel.Step
     @Namespace private var lit
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
+        let dark = scheme == .dark
+        // Explicit, not Color.primary / windowBackgroundColor: semantic colours render vibrant over the glass track (1.5:1 on CI).
+        let pill = dark ? Color(red: 0.957, green: 0.957, blue: 0.941) : Color(red: 0.106, green: 0.106, blue: 0.094)   // #F4F4F0 / #1B1B18
+        let onPill = dark ? Color(red: 0.039, green: 0.039, blue: 0.035) : Color.white                                   // #0A0A09
         HStack(spacing: 2) {
             ForEach(AppModel.Step.allCases, id: \.self) { step in
                 Text(title(step))
                     .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(step == current ? Color(nsColor: .windowBackgroundColor) : Color.secondary)
+                    .foregroundStyle(step == current ? onPill : Color.secondary)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
                     // VERIFY on a Mac: the lit capsule slides between steps.
-                    .background { if step == current { Capsule().fill(Color.primary).matchedGeometryEffect(id: "lit", in: lit) } }
+                    .background { if step == current { Capsule().fill(pill).matchedGeometryEffect(id: "lit", in: lit) } }
             }
         }
         .padding(3)
