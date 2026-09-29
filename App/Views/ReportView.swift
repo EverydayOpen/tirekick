@@ -9,12 +9,15 @@ struct ReportView: View {
     @EnvironmentObject private var model: AppModel
     @State private var dealt = false
     @State private var cardHeight: CGFloat = 0
-    private let previewScale: CGFloat = 0.78
+    private let previewScale: CGFloat = 0.58
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // Mask serial, Copy and the Save buttons are in RootView's bottom bar.
     var body: some View {
-        ScrollView {
+        // The card is a thumbnail, whole with its sheets and laser; Copy and the Save buttons carry the readable output.
+        HStack(alignment: .top, spacing: Space.xl) {
+            if let card = model.card { stage(card) }
+
             VStack(alignment: .leading, spacing: Space.xl) {
                 VStack(alignment: .leading, spacing: Space.xxs) {
                     Text("Report card").font(.system(size: 28, weight: .semibold)).tracking(-0.5)
@@ -24,14 +27,12 @@ struct ReportView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                if let card = model.card { stage(card) }
-
                 VStack(alignment: .leading, spacing: Space.xs) {
                     Text("What Tirekick can't tell you")
                         .font(.system(size: 12, weight: .semibold).smallCaps())
                         .tracking(0.5)
                         .foregroundStyle(.secondary)
-                        .padding(.leading, Space.m)
+                        .padding(.leading, 40)                                   // where the item text and hairlines start
                         .accessibilityAddTraits(.isHeader)
                     VStack(alignment: .leading, spacing: 0) {
                         ForEach(Array(ReportText.cantTell.enumerated()), id: \.offset) { i, item in
@@ -50,15 +51,18 @@ struct ReportView: View {
                     .surface(16)
                 }
             }
-            .padding(Space.xxl)
+            .accessibilitySortPriority(1)   // VoiceOver: the title and the text before the card on its left
         }
+        .accessibilityElement(children: .contain)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .padding(Space.xxl)
     }
 
     private func stage(_ card: ReportCard) -> some View {
         let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
         return ReportCardView(card: card)   // the PNG itself (Export renders it): effects go around it, never inside
             .background { GeometryReader { g in Color.clear.onAppear { cardHeight = g.size.height }.onChange(of: g.size.height) { cardHeight = $0 } } }
-            // Scaled to fit above the bottom bar, so the sheets and the laser show. VERIFY text crispness at 0.78.
+            // Scaled so the whole card, its sheets and the laser fit above the bottom bar (325pt wide).
             .scaleEffect(previewScale, anchor: .top)
             .frame(width: 560 * previewScale, height: cardHeight > 0 ? cardHeight * previewScale : nil, alignment: .top)
             .clipShape(shape)
@@ -75,19 +79,15 @@ struct ReportView: View {
             }
             .modifier(HoverTilt(max: 4, glare: true))
             .modifier(FlipFaces(angle: dealt || reduceMotion ? 0 : 180, back: CardBack().clipShape(shape)))
-            .scrollLean(reduceMotion)       // Compat: macOS 14+
             .lifted()
             .background(alignment: .bottom) {
                 // The laser the stack stands on: Horizon's line (its vertical centre) 4pt under the bottom sheet.
                 // Outside the tilt and the turn, so the light stays put. VERIFY by eye on a Mac.
-                Horizon(tint: Brand.hiVis, width: 520, soft: false)
+                Horizon(tint: Brand.hiVis, width: 560 * previewScale * 1.2, soft: false)   // a little wider than the card
                     .alignmentGuide(.bottom) { $0.height / 2 }
                     .offset(y: 10)
             }
             .onAppear { withAnimation(Motion.spring(reduceMotion).delay(0.1)) { dealt = true } }
-            .frame(maxWidth: .infinity)
-            .padding(.top, Space.xs)
-            .padding(.bottom, Space.xxl)
     }
 }
 

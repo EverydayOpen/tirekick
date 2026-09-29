@@ -1,13 +1,12 @@
-import AppKit
 import SwiftUI
 
 /// Welcome's laptop (MOTION.md §5.3, DESIGN.md §5.3), drawn with shapes and no assets: a graphite lid, an
-/// aluminium deck and the app icon (the lime check) on its screen. The lid opens once when it appears. With
+/// aluminium deck and the lime check on its screen. The lid opens once when it appears. With
 /// `scanning` the lid starts open and a lime beam sweeps the screen for as long as the view exists (only while checks
 /// run). Still, and open, under Reduce Motion. Callers stand it on a `Horizon` (and Welcome on `OnFloor`, tilting).
 struct LaptopView: View {
-    /// The lid's 98pt plus the deck's 8pt: where the floor line goes.
-    static let height: CGFloat = 106
+    /// The lid's 120pt plus the deck's 8pt: where the floor line goes.
+    static let height: CGFloat = 128
     var scanning = false
     @State private var open: Bool
     @State private var sweep = false
@@ -34,29 +33,29 @@ struct LaptopView: View {
                                     startPoint: .topLeading, endPoint: .bottomTrailing))     // graphite #2A2B2E → #151618
                 .overlay(lid.strokeBorder(Color.white.opacity(0.25), lineWidth: 0.5))       // the bezel's lit edge
                 .overlay(screen.padding(6))
-                .frame(width: 150, height: 98)
+                .frame(width: 184, height: 120)
                 // VERIFY sign on a Mac: closed means the lid lies toward the viewer, edge-on.
                 .rotation3DEffect(.degrees(open || reduceMotion ? 0 : -86), axis: (x: 1, y: 0, z: 0), anchor: .bottom, perspective: 0.45)
             // The deck seen from the front: aluminium, a little wider than the lid, with the thumb notch.
             RoundedRectangle(cornerRadius: 3, style: .continuous)
                 .fill(LinearGradient(colors: [Color(white: 0.85), Color(white: 0.56)], startPoint: .top, endPoint: .bottom))
                 .overlay(alignment: .top) { Capsule().fill(Color.black.opacity(0.2)).frame(width: 26, height: 2.5) }
-                .frame(width: 178, height: 8)
+                .frame(width: 216, height: 8)
         }
     }
 
     private var screen: some View {
         ZStack {
             RadialGradient(colors: [Color(red: 0.102, green: 0.141, blue: 0.063), .black], center: .center, startRadius: 0, endRadius: 80)   // #1A2410
-            Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .frame(width: 46, height: 46)
+            Image(systemName: "checkmark")
+                .font(.system(size: 34, weight: .heavy))
+                .foregroundStyle(Brand.hiVis)
                 .opacity(open || reduceMotion ? 1 : 0)
                 .animation(Motion.standard(reduceMotion).delay(0.45), value: open)
             if scanning && !reduceMotion {
                 LinearGradient(colors: [.clear, Brand.hiVis.opacity(0.55), .clear], startPoint: .top, endPoint: .bottom)
                     .frame(height: 22)
-                    .offset(y: sweep ? 50 : -50)
+                    .offset(y: sweep ? 62 : -62)   // the 108pt screen's edge plus half the beam
                     .animation(.linear(duration: 1.4).repeatForever(autoreverses: false), value: sweep)
             }
         }

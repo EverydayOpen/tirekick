@@ -26,7 +26,7 @@ struct TestsView: View {
         .padding(Space.xxl)
     }
 
-    /// A key-cap, legend top-left: the symbol in a well, the name, then the result as a tag with its mono note, or
+    /// A key-cap: the symbol in a well top-left, the name at the foot, then the result as a tag with its mono note, or
     /// "Not tested". The LED lights once the test has run (lime means tested; the verdict stays in the tag, and a
     /// skip isn't a run). Every tile has the same three rows, so the grid stays even.
     private func tile(_ test: HardwareTest) -> some View {
@@ -36,6 +36,7 @@ struct TestsView: View {
                 .font(.system(size: 18, weight: .medium))
                 .well(.secondary, size: 40)
                 .accessibilityHidden(true)
+            Spacer(minLength: Space.s)   // the legend sits on the cap's bottom edge
             VStack(alignment: .leading, spacing: 6) {
                 Text(test.title).font(.system(size: 15, weight: .semibold))
                 HStack(spacing: 6) {

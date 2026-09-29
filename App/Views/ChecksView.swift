@@ -113,7 +113,7 @@ struct ChecksView: View {
                 .font(.system(size: 12, weight: .semibold).smallCaps())   // VERIFY small caps with SF
                 .tracking(0.5)
                 .foregroundStyle(.secondary)
-                .padding(.leading, Space.m)
+                .padding(.leading, 40)                                   // where the row titles and hairlines start
                 .accessibilityAddTraits(.isHeader)
             VStack(alignment: .leading, spacing: 0, content: rows)
                 .surface(16)

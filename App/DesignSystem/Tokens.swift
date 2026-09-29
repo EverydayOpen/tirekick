@@ -33,8 +33,8 @@ enum Motion {
     static let follow = Animation.interactiveSpring(response: 0.25, dampingFraction: 0.86)
 }
 
-/// docs/DESIGN.md §5.2. The app keeps the user's accent for controls; lime is only the one prominent button, the
-/// beam, tested-key LEDs and registered keys.
+/// docs/DESIGN.md §5.2. Controls take the AccentColor asset, StepBar's lit graphite (#1B1B18 / #F4F4F0), unless the
+/// user picked a system accent; lime is only the one prominent button, the beam, tested-key LEDs and registered keys.
 enum Brand {
     /// Olive-black: the soft shadow under porcelain surfaces is tinted with it, not neutral grey (DESIGN.md §1.1 rule 3).
     static let ink = Color(red: 0.09, green: 0.10, blue: 0.04)
@@ -112,7 +112,7 @@ struct Bay: View {
                     LinearGradient(colors: [Color(red: 0.075, green: 0.075, blue: 0.07), Bay.floor(true)], startPoint: .top, endPoint: .bottom)
                 }
                 GeometryReader { g in
-                    RadialGradient(colors: [Color(red: 1, green: 0.94, blue: 0.82).opacity(dark ? 0.06 : 0.28), .clear],   // sodium white
+                    RadialGradient(colors: [Color(red: 1, green: 0.94, blue: 0.82).opacity(dark ? 0.12 : 0.28), .clear],   // sodium white
                                    center: .center, startRadius: 0, endRadius: 360)
                         .frame(width: 720, height: 720)
                         .position(x: g.size.width * light.x, y: g.size.height * light.y)
@@ -439,7 +439,8 @@ struct KeyCapStyle: ButtonStyle {
                         shape.fill(.quaternary).overlay(shape.strokeBorder(Color.primary, lineWidth: 1))
                     } else {
                         ZStack {
-                            shape.fill(wall).offset(y: down ? 1 : 3)                                   // the side wall
+                            // The side wall. In dark its rim keeps it apart from the near-black bay (DESIGN.md §4.1 --cap).
+                            shape.fill(wall).overlay(shape.strokeBorder(Color.white.opacity(dark ? 0.10 : 0), lineWidth: 1)).offset(y: down ? 1 : 3)
                             shape.fill(LinearGradient(colors: face, startPoint: .top, endPoint: .bottom))
                                 .overlay(shape.strokeBorder(Color.white.opacity(dark ? 0.14 : 0.9), lineWidth: 1)
                                     .mask { LinearGradient(colors: [.white, .clear], startPoint: .top, endPoint: .center) })   // the lit top rim

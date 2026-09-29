@@ -68,6 +68,9 @@ jobs:
           app="build/dd/Build/Products/Debug/$APP.app"
           mkdir -p screens/shots
           sips --formats | grep -i webp || echo "sips lists no WebP"   # DESIGN.md §2.6 VERIFY: prefer WebP if writable
+          # No mouse or trackpad on the runner, so macOS shows always-on legacy scroll bars. Each screen is a fresh
+          # launch, which reads the global domain.
+          defaults write -g AppleShowScrollBars -string WhenScrolling
           for look in light dark; do
             for screen in welcome checks checksWalkAway tests keyboard report; do
               open -n "$app" --args -demoScreen "$screen" -demoAppearance "$look"
